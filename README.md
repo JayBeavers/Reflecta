@@ -18,6 +18,8 @@ Reflecta is made of five small libraries that work together:
 
 - ReflectaHeartbeat.h -- an Arduino-side library for reading digital and analog pins very efficienctly and sending the results at a fixed frequency to the host PC.
 
+To install, download the contents of the repository as a zip file and decompress into your libraries folder, either where you have the Arduino IDE installed or in your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
+
 ----------
 
 ## ReflectaFrames ##
