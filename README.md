@@ -66,15 +66,21 @@ frame[2...] = parameter data
 
 For example, to invoke function id 7 with parameter data 'ABC', send:
 
-0x07 03 65 66 67
+> 0x07 03 65 66 67
+
+> FunctionId = 7, ParameterLength = 3, A = 65, B = 66, C = 67
 
 To QueryInterface to find out if interface 'ARDU1' (Arduino Core Library version 1) is implemented and if so where its function index starts, send a frame to function id '0' with parameters of 'ARDU1'.
 
-0x00 05 65 82 68 85 49
+> 0x00 05 65 82 68 85 49
+
+> Function Id = 0 (QueryInterface), ParameterLength = 5, A = 65, R = 82, D = 68, U = 85, 1 = 49
 
 This will return a response packet containing the sequence of the calling frame.  Response packets have frame[0] = 0xFD.  For example, if the calling frame was sequence 99 and the ARDU1 interface functions start at function id 6, the response frame coming into the host PC would contain:
 
-0xFD 99 01 06
+> 0xFD 99 01 06
+
+> Function Id = 0xFD (Response), SEQ = 99, ParameterLength = 1, Function Index = 6
 
 It's assumed that a higher level Reflecta Functions client library will hide this detail from the caller, instead exposing a simple function API that uses QueryInterface and sendFrame behind the scenes to make function calls appear local.
 
@@ -87,6 +93,8 @@ Reflecta Arduino Core binds the functions pinMode, digitalRead, digitalWrite, an
 pinMode, digitalWrite, and analogWrite take two byte parameters, one byte for each function parameter.  digitalRead and analogRead take one byte parameters.  For example, when QueryInterface ARDU1 = 9, sending
 
 > 0x09 02 11 1
+
+> Function Id = 0x09, ParameterLength = 2, Parameter[0] = 11, Parameter[1] = 1
 
 would call
 
