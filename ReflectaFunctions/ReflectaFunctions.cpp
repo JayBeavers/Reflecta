@@ -2,9 +2,8 @@
   ReflectaFunctions.cpp - Library for binding functions to a virtual function table
 */
 
+#include <ReflectaFramesSerial.h>
 #include "ReflectaFunctions.h"
-
-using namespace reflectaFrames;
 
 namespace reflectaFunctions
 {
@@ -30,7 +29,7 @@ namespace reflectaFunctions
 
   // Interface starting function id, id of the first function in the interface
   //   in the vtable
-  byte   interfaceStart[maximumInterfaces];
+  byte interfaceStart[maximumInterfaces];
   
   // Is this interface already defined?
   bool knownInterface(String interfaceId)
@@ -65,7 +64,7 @@ namespace reflectaFunctions
     }
     else
     {
-      sendError(FUNCTIONS_ERROR_FUNCTION_CONFLICT);
+      reflectaFrames::sendError(FUNCTIONS_ERROR_FUNCTION_CONFLICT);
     }
 
     return openFunctionIndex++;
@@ -81,7 +80,7 @@ namespace reflectaFunctions
     frame[2] = parameterLength;
     memcpy(frame + 3, parameters, parameterLength);
     
-    sendFrame(frame, 3 + parameterLength);
+    reflectaFrames::sendFrame(frame, 3 + parameterLength);
   }
   
   // Invoke the function, private method called by frameReceived
@@ -93,7 +92,7 @@ namespace reflectaFunctions
     }
     else
     {
-      sendError(FUNCTIONS_ERROR_FUNCTION_NOT_FOUND);
+      reflectaFrames::sendError(FUNCTIONS_ERROR_FUNCTION_NOT_FOUND);
     }
   }
   
@@ -115,7 +114,7 @@ namespace reflectaFunctions
     }
     else
     {
-      sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
+      reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
     }
   }
   
@@ -165,6 +164,6 @@ namespace reflectaFunctions
     // TODO: hook FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
     
     // Hook the incoming frames and turn them into function calls
-    setFrameReceivedCallback(frameReceived);
+    reflectaFrames::setFrameReceivedCallback(frameReceived);
   }
 };

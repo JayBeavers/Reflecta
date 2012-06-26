@@ -101,3 +101,9 @@ pinMode, digitalWrite, and analogWrite take two byte parameters, one byte for ea
 would call
 
 > pinMode(11, 1);
+
+----------
+
+## Examples ##
+
+BasicReflecta -- simplest example of using Reflecta, opens a Reflecta listener at 19200 baud and exposes the Arduino Core functions to be called.  This sample is the 'Arduino side' of the conversation.

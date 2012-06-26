@@ -2,7 +2,7 @@
   ReflectaFunctions.h - Library for binding functions to a virtual function table
 */
 
-#include <ReflectaFramesSerial.h>
+#include <Arduino.h>
 
 #ifndef REFLECTA_FUNCTIONS_H
 #define REFLECTA_FUNCTIONS_H
