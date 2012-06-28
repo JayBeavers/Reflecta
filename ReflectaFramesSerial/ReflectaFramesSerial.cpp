@@ -170,10 +170,10 @@ namespace reflectaFrames
 	byte* frameBufferSource = NULL;
 	
 	// Default frame buffer allocator for when caller does not set one.
-	void frameBufferAllocation(byte** frameBuffer, byte* frameBufferLength)
+	byte frameBufferAllocation(byte** frameBuffer)
 	{
 		*frameBuffer = frameBufferSource;
-		*frameBufferLength = frameBufferSourceLength;
+		return frameBufferSourceLength;
 	}
 	
 	// Reset the communications protocol
@@ -222,7 +222,7 @@ namespace reflectaFrames
 							readSequence = seq;
 							sendError(FRAMES_WARNING_OUT_OF_SEQUENCE);
 						}
-						frameBufferAllocationCallback(&frameBuffer, &frameBufferLength);
+						frameBufferLength = frameBufferAllocationCallback(&frameBuffer);
 						frameIndex = 0; // Reset the buffer pointer to beginning
 						state = WAITING_FOR_BYTECODE;
 						break;
