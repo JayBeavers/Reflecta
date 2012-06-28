@@ -22,7 +22,8 @@ namespace reflectaFrames
 {
 	// Function definition for Frame Buffer Allocation function, to be optionally implemented by
 	// the calling library or application.
-	typedef void (*frameBufferAllocationFunction)(byte** frameBuffer, byte* frameBufferLength);
+	// Returns the size of the frame buffer
+	typedef byte (*frameBufferAllocationFunction)(byte** frameBuffer);
 	
 	// Function definition for the Frame Received function.
 	typedef void (*frameReceivedFunction)(byte sequence, byte frameLength, byte* frame);
