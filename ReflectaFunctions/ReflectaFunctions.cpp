@@ -136,12 +136,12 @@ namespace reflectaFunctions
         if (frameLength > 2 && frame[0] == FUNCTIONS_PUSHARRAY)
         {
           byte length = frame[1];
-          for (int i = length + 1; i > 0; i--)
+          for (int i = length + 1; i > 1; i--) // Do not include the length when pushing, just the data
           {
             push(frame[i]);
           }
         }
-        else if (frame[0] & 0x80 == 0x80) // extended parser
+        else if ((frame[0] & 0x80) == 0x80) // extended parser
         {
           if (extendedParser != NULL)
             extendedParser(sequence, frameLength, frame);
@@ -167,7 +167,7 @@ namespace reflectaFunctions
     byte parameters[parameterLength];
     for (int i = 0; i < parameterLength; i++)
       parameters[i] = pop();
-    
+        
     for(int index = 0; index < indexOfInterfaces; index++)
     {
       String interfaceId = interfaceIds[index];
@@ -176,7 +176,7 @@ namespace reflectaFunctions
       //   String into a buffer and use strncmp
       char buffer[interfaceId.length() + 1];
       interfaceId.toCharArray(buffer, interfaceId.length() + 1);
-            
+      
       if (strncmp((const char*)buffer, (const char *)(parameters), parameterLength) == 0)
       {
         sendResponse(sequence, 1, interfaceStart + index);
@@ -184,7 +184,8 @@ namespace reflectaFunctions
       }
     }
 
-    sendResponse(sequence, 1, 0);
+    byte buf[1] = { 0 };
+    sendResponse(sequence, 1, buf);
   }
 
   void setup()
