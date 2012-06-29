@@ -8,48 +8,48 @@ ReflectaFramesSerial.h - Library for sending frames of information from a Microc
 #define REFLECTA_FRAMES_H
 
 // An error occurred when parsing a data packet into the Reflecta protocol 
-#define FRAMES_MESSAGE									0xFE
-#define FRAMES_ERROR 										0xFF
+#define FRAMES_MESSAGE                  0x7E
+#define FRAMES_ERROR                    0x7F
 
 // Types of parsing errors detected by Reflecta Frames
-#define FRAMES_WARNING_OUT_OF_SEQUENCE	0x00
-#define FRAMES_ERROR_UNEXPECTED_ESCAPE 	0x01
-#define FRAMES_ERROR_CRC_MISMATCH      	0x02
-#define FRAMES_ERROR_UNEXPECTED_END    	0x03
-#define FRAMES_ERROR_BUFFER_OVERFLOW   	0x04
+#define FRAMES_WARNING_OUT_OF_SEQUENCE  0x00
+#define FRAMES_ERROR_UNEXPECTED_ESCAPE  0x01
+#define FRAMES_ERROR_CRC_MISMATCH       0x02
+#define FRAMES_ERROR_UNEXPECTED_END     0x03
+#define FRAMES_ERROR_BUFFER_OVERFLOW    0x04
 
 namespace reflectaFrames
 {
-	// Function definition for Frame Buffer Allocation function, to be optionally implemented by
-	// the calling library or application.
-	typedef void (*frameBufferAllocationFunction)(byte** frameBuffer, byte* frameBufferLength);
-	
-	// Function definition for the Frame Received function.
-	typedef void (*frameReceivedFunction)(byte sequence, byte frameLength, byte* frame);
-	
-	// Set the Frame Received Callback
-	void setFrameReceivedCallback(frameReceivedFunction frameReceived);
-	
-	// Set the Buffer Allocation Callback
-	void setBufferAllocationCallback(frameBufferAllocationFunction frameBufferAllocation);
-	
-	// Send a two byte frame notifying caller that something improper occured
-	void sendError(byte eventId);
-	
-	// Send a string message
-	void sendMessage(String message);
-	
-	// Send a frame of data returning the sequence id
-	byte sendFrame(byte* frame, byte frameLength);
-	
-	// Reset the communications protocol (zero the sequence numbers & flush the communications buffers) 
-	void reset();
-	
-	// Setup the communications protocol, to be called in Arduino setup()
-	void setup(int speed);
-	
-	// Service the incoming communications data, to be called in Arduino loop()
-	void loop();
+  // Function definition for Frame Buffer Allocation function, to be optionally implemented by
+  // the calling library or application.
+  typedef void (*frameBufferAllocationFunction)(byte** frameBuffer, byte* frameBufferLength);
+  
+  // Function definition for the Frame Received function.
+  typedef void (*frameReceivedFunction)(byte sequence, byte frameLength, byte* frame);
+  
+  // Set the Frame Received Callback
+  void setFrameReceivedCallback(frameReceivedFunction frameReceived);
+  
+  // Set the Buffer Allocation Callback
+  void setBufferAllocationCallback(frameBufferAllocationFunction frameBufferAllocation);
+  
+  // Send a two byte frame notifying caller that something improper occured
+  void sendError(byte eventId);
+  
+  // Send a string message
+  void sendMessage(String message);
+  
+  // Send a frame of data returning the sequence id
+  byte sendFrame(byte* frame, byte frameLength);
+  
+  // Reset the communications protocol (zero the sequence numbers & flush the communications buffers) 
+  void reset();
+  
+  // Setup the communications protocol, to be called in Arduino setup()
+  void setup(int speed);
+  
+  // Service the incoming communications data, to be called in Arduino loop()
+  void loop();
 };
 
 #endif

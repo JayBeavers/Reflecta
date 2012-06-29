@@ -8,10 +8,10 @@
 namespace reflectaFunctions
 {
   // Index of next unused function in the function table (vtable)
-  byte openFunctionIndex = 1;
+  byte openFunctionIndex = 2;
   
   // Function table that relates function id -> function
-  void (*vtable[255])(byte callerSequence, byte parameterLength, byte* parameters);
+  void (*vtable[255])(byte sequence);
   
   // An interface is a well known group of functions.  Function id 0 == QueryInterface
   //   which allows a client to determine which functions an Arduino supports.
@@ -50,7 +50,7 @@ namespace reflectaFunctions
   //   Note: You don't generally use the return value, the client uses
   //   QueryInterface (e.g. function id 0) to determine the function id
   //   remotely.
-  byte bind(String interfaceId, void (*function)(byte callerSequence, byte parameterLength, byte* parameters))
+  byte bind(String interfaceId, void (*function)(byte sequence))
   {
     if (!knownInterface(interfaceId))
     {
@@ -84,11 +84,11 @@ namespace reflectaFunctions
   }
   
   // Invoke the function, private method called by frameReceived
-  void run(byte callerSequence, byte i, byte parameterLength, byte* parameters)
+  void run(byte sequence, byte i)
   {
     if (vtable[i] != NULL)
     {
-      vtable[i](callerSequence, parameterLength, parameters);
+      vtable[i](sequence);
     }
     else
     {
@@ -96,21 +96,60 @@ namespace reflectaFunctions
     }
   }
   
+  const byte parameterStackMax = 255;
+  int parameterStackTop = -1;
+  byte parameterStack[parameterStackMax + 1];
+  
+  void push(byte b)
+  {
+    if (parameterStackTop == parameterStackMax)
+    {
+      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_OVERFLOW);
+    }
+    else
+    {
+      parameterStack[++parameterStackTop] = b;
+    }
+  }
+  
+  byte pop()
+  {
+    if (parameterStackTop == -1)
+      {
+        reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
+      }
+          else
+    {
+      return parameterStack[parameterStackTop--];
+    }
+  }
+  
+  reflectaFrames::frameReceivedFunction extendedParser = NULL;
+  
   // Private function hooked to reflectaFrames to inspect incoming frames and
   //   Turn them into function calls.
   void frameReceived(byte sequence, byte frameLength, byte* frame)
   {
-    if (frameLength > 2)
+    if (frameLength > 0)
     {
-      // TODO: Break frame into multiple function calls if present
-      
-      // First byte of frame is function id, rest of frame is function parameter
-      run(sequence, frame[0], frame[1], frame + 2);
-    }
-    else if (frameLength > 0)
-    {      
-      // First byte of frame is function id, rest of frame is function parameter
-      run(sequence, frame[0], NULL, NULL);
+        // TODO: Break frame into multiple function calls if present
+        if (frameLength > 2 && frame[0] == FUNCTIONS_PUSHARRAY)
+        {
+          byte length = frame[1];
+          for (int i = length + 1; i > 0; i--)
+          {
+            push(frame[i]);
+          }
+        }
+        else if (frame[0] & 0x80 == 0x80) // extended parser
+        {
+          if (extendedParser != NULL)
+            extendedParser(sequence, frameLength, frame);
+        }
+        else
+        {
+          run(sequence, frame[0]);
+        }
     }
     else
     {
@@ -118,22 +157,17 @@ namespace reflectaFunctions
     }
   }
   
-  // queryInterface is called by invoking function id 0 and passing as a
+  // queryInterface is called by invoking function and passing as a
   //   parameter the interface id.
   // It returns the result by sending a response containing either the
   //    interface id of the first method or 0 if not found
-  void queryInterface(byte sequence, byte parameterLength, byte* parameters)
+  void queryInterface(byte sequence)
   {
-    //    255 SEQ CCCCIV#CCCCIV#CCCCIV#
-    //      255 says 'this is a response to'
-    //      SEQ is the SEQ of the frame that issued the QueryInterface call
-  
-    //    CCCCIV an Interface per above
-    //    # is the 'function pointer offset' where the interface's functions are in the vtable
-  
-    //    Since our packet size is constrained to 64 bytes and we may overflow the packet, we return at most five interfaces per frame
-    //    QueryInterface response is hardcoded in source code
-
+    const byte parameterLength = 5;
+    byte parameters[parameterLength];
+    for (int i = 0; i < parameterLength; i++)
+      parameters[i] = pop();
+    
     for(int index = 0; index < indexOfInterfaces; index++)
     {
       String interfaceId = interfaceIds[index];
@@ -157,13 +191,20 @@ namespace reflectaFunctions
   {
     // Zero out the vtable function pointers
     memset(vtable, NULL, 255);
-    
+   
     // Bind the QueryInterface function in the vtable
     // Do this manually as we don't want to set a matching Interface
     vtable[FUNCTIONS_QUERYINTERFACE] = queryInterface;
-    // TODO: hook FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
+    
+    // TODO: block out FUNCTIONS_PUSHARRAY, FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
     
     // Hook the incoming frames and turn them into function calls
     reflectaFrames::setFrameReceivedCallback(frameReceived);
   }
+  
+  void setExtendedParser(reflectaFrames::frameReceivedFunction fn)
+  {
+    extendedParser = fn;
+  }
+
 };

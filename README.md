@@ -4,7 +4,7 @@ Reflecta is a remote communications library for Arduino.  It enables you to inte
 
 ## Why? ##
 
-The motivation to write Reflecta came from a need to combine remote IO and remote function calling for robotics scenarios.  A host PC can read sensor data off the Arduino at 400+ frames per second while calling Arduino libraries or applications to perform time sensitive (e.g. real time) tasks such as servo control, PWM, amd I2C communications.
+The motivation to write Reflecta came from a need to combine remote IO and remote function calling for robotics scenarios.  A host PC can read sensor data off the Arduino at 400+ frames per second while calling Arduino libraries or applications to perform time sensitive (e.g. real time) tasks such as servo control, PWM, and I2C communications.
 
 ## How? ##
 
