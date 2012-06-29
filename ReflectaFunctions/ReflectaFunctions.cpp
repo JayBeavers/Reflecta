@@ -1,5 +1,5 @@
 /*
-  ReflectaFunctions.cpp - Library for binding functions to a virtual function table
+ReflectaFunctions.cpp - Library for binding functions to a virtual function table
 */
 
 #include <ReflectaFramesSerial.h>
@@ -9,10 +9,10 @@ namespace reflectaFunctions
 {
   // Index of next unused function in the function table (vtable)
   byte openFunctionIndex = 2;
-  
+
   // Function table that relates function id -> function
   void (*vtable[255])(byte sequence);
-  
+
   // An interface is a well known group of functions.  Function id 0 == QueryInterface
   //   which allows a client to determine which functions an Arduino supports.
   // Maximum number of interfaces supported
@@ -30,7 +30,7 @@ namespace reflectaFunctions
   // Interface starting function id, id of the first function in the interface
   //   in the vtable
   byte interfaceStart[maximumInterfaces];
-  
+
   // Is this interface already defined?
   bool knownInterface(String interfaceId)
   {
@@ -44,7 +44,7 @@ namespace reflectaFunctions
 
     return false;
   }
-  
+
   // Bind a function to the vtable so it can be remotely invoked.
   //   returns the function id of the binding in the vtable
   //   Note: You don't generally use the return value, the client uses
@@ -57,7 +57,7 @@ namespace reflectaFunctions
       interfaceIds[indexOfInterfaces] = interfaceId;
       interfaceStart[indexOfInterfaces++] = openFunctionIndex;
     }
-    
+
     if (vtable[openFunctionIndex] == NULL)
     {
       vtable[openFunctionIndex] = function;
@@ -69,20 +69,20 @@ namespace reflectaFunctions
 
     return openFunctionIndex++;
   }
-  
+
   // Send a response frame to a function invoke.
   void sendResponse(byte callerSequence, byte parameterLength, byte* parameters)
   {
     byte frame[3 + parameterLength];
-    
+
     frame[0] = FUNCTIONS_RESPONSE;
     frame[1] = callerSequence;
     frame[2] = parameterLength;
     memcpy(frame + 3, parameters, parameterLength);
-    
+
     reflectaFrames::sendFrame(frame, 3 + parameterLength);
   }
-  
+
   // Invoke the function, private method called by frameReceived
   void run(byte sequence, byte i)
   {
@@ -95,11 +95,11 @@ namespace reflectaFunctions
       reflectaFrames::sendError(FUNCTIONS_ERROR_FUNCTION_NOT_FOUND);
     }
   }
-  
+
   const byte parameterStackMax = 255;
   int parameterStackTop = -1;
   byte parameterStack[parameterStackMax + 1];
-  
+
   void push(byte b)
   {
     if (parameterStackTop == parameterStackMax)
@@ -111,52 +111,52 @@ namespace reflectaFunctions
       parameterStack[++parameterStackTop] = b;
     }
   }
-  
+
   byte pop()
   {
     if (parameterStackTop == -1)
-      {
-        reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
-      }
-          else
+    {
+      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
+    }
+    else
     {
       return parameterStack[parameterStackTop--];
     }
   }
-  
+
   reflectaFrames::frameReceivedFunction extendedParser = NULL;
-  
+
   // Private function hooked to reflectaFrames to inspect incoming frames and
   //   Turn them into function calls.
   void frameReceived(byte sequence, byte frameLength, byte* frame)
   {
     if (frameLength > 0)
     {
-        // TODO: Break frame into multiple function calls if present
-        if (frameLength > 2 && frame[0] == FUNCTIONS_PUSHARRAY)
+      // TODO: Break frame into multiple function calls if present
+      if (frameLength > 2 && frame[0] == FUNCTIONS_PUSHARRAY)
+      {
+        byte length = frame[1];
+        for (int i = length + 1; i > 1; i--) // Do not include the length when pushing, just the data
         {
-          byte length = frame[1];
-          for (int i = length + 1; i > 0; i--)
-          {
-            push(frame[i]);
-          }
+          push(frame[i]);
         }
-        else if (frame[0] & 0x80 == 0x80) // extended parser
-        {
-          if (extendedParser != NULL)
-            extendedParser(sequence, frameLength, frame);
-        }
-        else
-        {
-          run(sequence, frame[0]);
-        }
+      }
+      else if ((frame[0] & 0x80) == 0x80) // extended parser
+      {
+        if (extendedParser != NULL)
+          extendedParser(sequence, frameLength, frame);
+      }
+      else
+      {
+        run(sequence, frame[0]);
+      }
     }
     else
     {
       reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
     }
   }
-  
+
   // queryInterface is called by invoking function and passing as a
   //   parameter the interface id.
   // It returns the result by sending a response containing either the
@@ -167,16 +167,16 @@ namespace reflectaFunctions
     byte parameters[parameterLength];
     for (int i = 0; i < parameterLength; i++)
       parameters[i] = pop();
-    
+
     for(int index = 0; index < indexOfInterfaces; index++)
     {
       String interfaceId = interfaceIds[index];
-      
+
       // I could find no way to compare an Arduino String to byte* so I had to copy the
       //   String into a buffer and use strncmp
       char buffer[interfaceId.length() + 1];
       interfaceId.toCharArray(buffer, interfaceId.length() + 1);
-            
+
       if (strncmp((const char*)buffer, (const char *)(parameters), parameterLength) == 0)
       {
         sendResponse(sequence, 1, interfaceStart + index);
@@ -191,17 +191,17 @@ namespace reflectaFunctions
   {
     // Zero out the vtable function pointers
     memset(vtable, NULL, 255);
-   
+
     // Bind the QueryInterface function in the vtable
     // Do this manually as we don't want to set a matching Interface
     vtable[FUNCTIONS_QUERYINTERFACE] = queryInterface;
-    
+
     // TODO: block out FUNCTIONS_PUSHARRAY, FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
-    
+
     // Hook the incoming frames and turn them into function calls
     reflectaFrames::setFrameReceivedCallback(frameReceived);
   }
-  
+
   void setExtendedParser(reflectaFrames::frameReceivedFunction fn)
   {
     extendedParser = fn;
