@@ -11,11 +11,11 @@ namespace reflectaArduinoCore
 {
   // ReflectaFunctions wrappers that receive the function call, parse the
   //   parameters, and call the matching Arduino libray functions
-  void pinMode(byte sequence);
-  void digitalRead(byte sequence);
-  void digitalWrite(byte sequence);
-  void analogRead(byte sequence);
-  void analogWrite(byte sequence);
+  void pinMode();
+  void digitalRead();
+  void digitalWrite();
+  void analogRead();
+  void analogWrite();
   
   // Bind the Arduino core methods to the ARDU1 interface
   void setup();

@@ -11,7 +11,7 @@ namespace reflectaFunctions
   byte openFunctionIndex = 2;
 
   // Function table that relates function id -> function
-  void (*vtable[255])(byte sequence);
+  void (*vtable[255])();
 
   // An interface is a well known group of functions.  Function id 0 == QueryInterface
   //   which allows a client to determine which functions an Arduino supports.
@@ -50,7 +50,7 @@ namespace reflectaFunctions
   //   Note: You don't generally use the return value, the client uses
   //   QueryInterface (e.g. function id 0) to determine the function id
   //   remotely.
-  byte bind(String interfaceId, void (*function)(byte sequence))
+  byte bind(String interfaceId, void (*function)())
   {
     if (!knownInterface(interfaceId))
     {
@@ -70,8 +70,10 @@ namespace reflectaFunctions
     return openFunctionIndex++;
   }
 
+  byte callerSequence;
+  
   // Send a response frame to a function invoke.
-  void sendResponse(byte callerSequence, byte parameterLength, byte* parameters)
+  void sendResponse(byte parameterLength, byte* parameters)
   {
     byte frame[3 + parameterLength];
 
@@ -84,11 +86,11 @@ namespace reflectaFunctions
   }
 
   // Invoke the function, private method called by frameReceived
-  void run(byte sequence, byte i)
+  void run(byte i)
   {
     if (vtable[i] != NULL)
     {
-      vtable[i](sequence);
+      vtable[i]();      
     }
     else
     {
@@ -98,9 +100,9 @@ namespace reflectaFunctions
 
   const byte parameterStackMax = 255;
   int parameterStackTop = -1;
-  byte parameterStack[parameterStackMax + 1];
+  int16_t parameterStack[parameterStackMax + 1];
 
-  void push(byte b)
+  void push(int16_t w)
   {
     if (parameterStackTop == parameterStackMax)
     {
@@ -108,24 +110,49 @@ namespace reflectaFunctions
     }
     else
     {
-      parameterStack[++parameterStackTop] = b;
+      parameterStack[++parameterStackTop] = w;
     }
   }
 
-  byte pop()
+  int16_t pop()
   {
     if (parameterStackTop == -1)
     {
       reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
+      return -1;
     }
     else
     {
       return parameterStack[parameterStackTop--];
     }
   }
+  
+  void sendResponseCount()
+  {
+    int16_t count = pop();
+    byte size = 3 + 2 * count;
+    
+    byte frame[size];
+    
+    frame[0] = FUNCTIONS_RESPONSE;
+    frame[1] = callerSequence;
+    frame[2] = 2 * count;
+    for (int i = 0; i < count; i++)
+    {
+      int16_t value = pop();
+      frame[3 + 2 * i] = value >> 8;
+      frame[4 + 2 * i] = value;
+    }
+    
+    reflectaFrames::sendFrame(frame, size);
+  }
 
-  reflectaFrames::frameReceivedFunction extendedParser = NULL;
-
+  void sendResponse()
+  {
+    push(1);
+    sendResponseCount();
+  }
+  
   // Private function hooked to reflectaFrames to inspect incoming frames and
   //   Turn them into function calls.
   void frameReceived(byte sequence, byte frameLength, byte* frame)
@@ -141,14 +168,10 @@ namespace reflectaFunctions
           push(frame[i]);
         }
       }
-      else if ((frame[0] & 0x80) == 0x80) // extended parser
-      {
-        if (extendedParser != NULL)
-          extendedParser(sequence, frameLength, frame);
-      }
       else
       {
-        run(sequence, frame[0]);
+        callerSequence = sequence;
+        run(frame[0]);
       }
     }
     else
@@ -161,7 +184,7 @@ namespace reflectaFunctions
   //   parameter the interface id.
   // It returns the result by sending a response containing either the
   //    interface id of the first method or 0 if not found
-  void queryInterface(byte sequence)
+  void queryInterface()
   {
     const byte parameterLength = 5;
     byte parameters[parameterLength];
@@ -179,12 +202,12 @@ namespace reflectaFunctions
 
       if (strncmp((const char*)buffer, (const char *)(parameters), parameterLength) == 0)
       {
-        sendResponse(sequence, 1, interfaceStart + index);
+        sendResponse(1, interfaceStart + index);
         return;
       }
     }
 
-    sendResponse(sequence, 1, 0);
+    sendResponse(1, 0);
   }
 
   void setup()
@@ -196,15 +219,12 @@ namespace reflectaFunctions
     // Do this manually as we don't want to set a matching Interface
     vtable[FUNCTIONS_QUERYINTERFACE] = queryInterface;
 
+    vtable[FUNCTIONS_SENDRESPONSECOUNT] = sendResponseCount;
+    vtable[FUNCTIONS_SENDRESPONSE] = sendResponse;
+
     // TODO: block out FUNCTIONS_PUSHARRAY, FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
 
     // Hook the incoming frames and turn them into function calls
     reflectaFrames::setFrameReceivedCallback(frameReceived);
   }
-
-  void setExtendedParser(reflectaFrames::frameReceivedFunction fn)
-  {
-    extendedParser = fn;
-  }
-
 };

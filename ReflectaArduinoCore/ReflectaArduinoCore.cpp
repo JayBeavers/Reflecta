@@ -11,29 +11,27 @@ using namespace reflectaFunctions;
 
 namespace reflectaArduinoCore
 {
-  void pinMode(byte sequence)
+  void pinMode()
   {
     ::pinMode(pop(), pop());
   }
   
-  void digitalRead(byte sequence)
+  void digitalRead()
   {
-    byte val = ::digitalRead(pop());
-    sendResponse(sequence, 1, &val);
+    push(::digitalRead(pop()));
   }
   
-  void digitalWrite(byte sequence)
+  void digitalWrite()
   {
     ::digitalWrite(pop(), pop());
   }
   
-  void analogRead(byte sequence)
+  void analogRead()
   {
-    int16_t val = ::analogRead(pop());
-    sendResponse(sequence, 2, (byte*)&val);
+    push(::analogRead(pop()));
   }
   
-  void analogWrite(byte sequence)
+  void analogWrite()
   {
     ::analogWrite(pop(), pop());
   }
