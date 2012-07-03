@@ -200,12 +200,13 @@ namespace reflectaFrames
   byte* frameBuffer;
   byte frameBufferLength;
   byte frameIndex = 0;
+
+  byte sequence;
   
   // Read the uncoming data stream, to be called inside Arduino loop()
   void loop()
   {
     byte b;
-    byte seq;
     
     while (Serial.available())
     {
@@ -216,10 +217,10 @@ namespace reflectaFrames
           case WAITING_FOR_RECOVERY:
             break;
           case WAITING_FOR_SEQUENCE:
-            seq = b;
-            if (readSequence++ != seq)
+            sequence = b;
+            if (++readSequence != sequence)
             {
-              readSequence = seq;
+              readSequence = sequence;
               sendError(FRAMES_WARNING_OUT_OF_SEQUENCE);
             }
             frameBufferLength = frameBufferAllocationCallback(&frameBuffer);

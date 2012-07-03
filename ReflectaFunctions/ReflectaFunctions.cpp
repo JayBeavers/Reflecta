@@ -72,7 +72,8 @@ namespace reflectaFunctions
 
   byte callerSequence;
   
-  // Send a response frame to a function invoke.
+  // Send a response frame from a function invoke.  Used when the function automatically returns
+  // data to the caller.
   void sendResponse(byte parameterLength, byte* parameters)
   {
     byte frame[3 + parameterLength];
@@ -127,6 +128,10 @@ namespace reflectaFunctions
     }
   }
   
+  // Request a response frame from data that is on the parameterStack.  Used to retrieve
+  // a count of 'n' data bytes that were push on the parameterStack from a previous
+  // invocation.  The count of bytes to be returned is determined by popping a byte off
+  // the stack so it's expected that 'PushArray 1 ResponseCount' is called first. 
   void sendResponseCount()
   {
     int16_t count = pop();
@@ -147,12 +152,14 @@ namespace reflectaFunctions
     reflectaFrames::sendFrame(frame, size);
   }
 
+  // Request a response frame of one byte data that is on the parameterStack.  Used to
+  // retrieve data pushed on the parameterStack from a previous function invocation.
   void sendResponse()
   {
     push(1);
     sendResponseCount();
   }
-  
+    
   // Private function hooked to reflectaFrames to inspect incoming frames and
   //   Turn them into function calls.
   void frameReceived(byte sequence, byte frameLength, byte* frame)
@@ -160,12 +167,19 @@ namespace reflectaFunctions
     if (frameLength > 0)
     {
       // TODO: Break frame into multiple function calls if present
-      if (frameLength > 2 && frame[0] == FUNCTIONS_PUSHARRAY)
+      if (frame[0] == FUNCTIONS_PUSHARRAY)
       {
-        byte length = frame[1];
-        for (int i = length + 1; i > 1; i--) // Do not include the length when pushing, just the data
+        if (frameLength < 3)
         {
-          push(frame[i]);
+          reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
+        }
+        else
+        {
+          byte length = frame[1];
+          for (int i = length + 1; i > 1; i--) // Do not include the length when pushing, just the data
+          {
+            push(frame[i]);
+          }
         }
       }
       else
