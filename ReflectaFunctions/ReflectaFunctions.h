@@ -39,6 +39,18 @@ namespace reflectaFunctions
   
   // reflectaFunctions setup() to be called in the Arduino setup() method
   void setup();
+  
+  // Execution pointer for Reflecta Functions.  To be used by functions that
+  // change the order of instruction execution in the incoming frame.  Note:
+  // if you are not implementing your own 'scripting language', you shouldn't
+  // be using this.
+  extern byte* execution;
+  
+  // Top of the frame marker to be used when modifying the execution pointer.
+  // Generally speaking execution should not go beyong frameTop.  When
+  // execution == frameTop, the Reflecta Functions frameReceived execution loop
+  // stops. 
+  extern byte* frameTop;  
 };
 
 #endif

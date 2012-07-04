@@ -50,6 +50,10 @@ namespace reflectaFrames
   
   // Service the incoming communications data, to be called in Arduino loop()
   void loop();
+  
+  // Millisecond counter for last time a frame was received.  Can be used to implement a 'deadman switch' when
+  // communications with a host PC are lost or interrupted.
+  extern uint32_t lastFrameReceived;
 };
 
 #endif

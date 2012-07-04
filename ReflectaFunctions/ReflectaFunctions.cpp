@@ -99,7 +99,7 @@ namespace reflectaFunctions
     }
   }
 
-  const byte parameterStackMax = 255;
+  const byte parameterStackMax = 15;
   int parameterStackTop = -1;
   int16_t parameterStack[parameterStackMax + 1];
 
@@ -159,38 +159,44 @@ namespace reflectaFunctions
     push(1);
     sendResponseCount();
   }
+  
+  // Execution pointer for Reflecta Functions.  To be used by functions that
+  // change the order of instruction execution in the incoming frame.  Note:
+  // if you are not implementing your own 'scripting language', you shouldn't
+  // be using this.
+  byte* execution;
+  
+  // Top of the frame marker to be used when modifying the execution pointer.
+  // Generally speaking execution should not go beyong frameTop.  When
+  // execution == frameTop, the Reflecta Functions frameReceived execution loop
+  // stops. 
+  byte* frameTop;  
+
+  void pushArray()
+  {
+    // Pull off array length
+    if (execution == frameTop) reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
+    byte length = *execution++;
     
+    // Push array data onto parameter stack as bytes
+    for (int i = 0; i < length; i++) // Do not include the length when pushing, just the data
+    {
+      if (execution == frameTop) reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
+      push(*execution++);
+    }
+  }
+  
   // Private function hooked to reflectaFrames to inspect incoming frames and
   //   Turn them into function calls.
   void frameReceived(byte sequence, byte frameLength, byte* frame)
   {
-    if (frameLength > 0)
+    execution = frame; // Set the execution pointer to the start of the frame
+    callerSequence = sequence;
+    frameTop = frame + frameLength;
+
+    while (execution != frameTop)
     {
-      // TODO: Break frame into multiple function calls if present
-      if (frame[0] == FUNCTIONS_PUSHARRAY)
-      {
-        if (frameLength < 3)
-        {
-          reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
-        }
-        else
-        {
-          byte length = frame[1];
-          for (int i = length + 1; i > 1; i--) // Do not include the length when pushing, just the data
-          {
-            push(frame[i]);
-          }
-        }
-      }
-      else
-      {
-        callerSequence = sequence;
-        run(frame[0]);
-      }
-    }
-    else
-    {
-      reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
+      run(*execution++);
     }
   }
 
@@ -231,6 +237,7 @@ namespace reflectaFunctions
 
     // Bind the QueryInterface function in the vtable
     // Do this manually as we don't want to set a matching Interface
+    vtable[FUNCTIONS_PUSHARRAY] = pushArray;
     vtable[FUNCTIONS_QUERYINTERFACE] = queryInterface;
 
     vtable[FUNCTIONS_SENDRESPONSECOUNT] = sendResponseCount;

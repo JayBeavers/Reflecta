@@ -202,6 +202,10 @@ namespace reflectaFrames
   byte frameIndex = 0;
 
   byte sequence;
+
+  // Millisecond counter for last time a frame was received.  Can be used to implement a 'deadman switch' when
+  // communications with a host PC are lost or interrupted.
+  uint32_t lastFrameReceived;
   
   // Read the uncoming data stream, to be called inside Arduino loop()
   void loop()
@@ -240,6 +244,7 @@ namespace reflectaFrames
             }
             break;
           case PROCESS_PAYLOAD:
+            lastFrameReceived = millis();
             if (readChecksum == 0) // zero expected because finally XOR'd with itself
             {
               if (frameReceivedCallback != NULL)
