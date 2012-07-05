@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include <Servo.h>
 #include <ReflectaFramesSerial.h>
 #include <ReflectaFunctions.h>
 #include <ReflectaArduinoCore.h>
