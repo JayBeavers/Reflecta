@@ -91,6 +91,7 @@ namespace reflectaFunctions
   {
     if (vtable[i] != NULL)
     {
+      reflectaFrames::sendMessage("Executing " + String(i));
       vtable[i]();      
     }
     else
@@ -111,6 +112,7 @@ namespace reflectaFunctions
     }
     else
     {
+      reflectaFrames::sendMessage("Push " + String(w));
       parameterStack[++parameterStackTop] = w;
     }
   }
@@ -124,6 +126,7 @@ namespace reflectaFunctions
     }
     else
     {
+      reflectaFrames::sendMessage("Pop " + parameterStack[parameterStackTop]);
       return parameterStack[parameterStackTop--];
     }
   }
@@ -204,10 +207,15 @@ namespace reflectaFunctions
     callerSequence = sequence;
     frameTop = frame + frameLength;
 
+    reflectaFrames::sendMessage("Start FrameReceived");
+    reflectaFrames::sendMessage("Execution " + String((int)execution));
+    reflectaFrames::sendMessage("FrameTop " + String((int)frameTop));
     while (execution != frameTop)
     {
+      reflectaFrames::sendMessage("Executing " + String((int)execution) + " : " + String(*execution));
       run(*execution++);
     }
+    reflectaFrames::sendMessage("End FrameReceived");
   }
 
   // queryInterface is called by invoking function and passing as a
@@ -216,6 +224,8 @@ namespace reflectaFunctions
   //    interface id of the first method or 0 if not found
   void queryInterface()
   {
+    reflectaFrames::sendMessage("QI Called");
+    
     for(int index = 0; index < indexOfInterfaces; index++)
     {
       push(interfaceIds[index][4]);

@@ -10,7 +10,7 @@
 
 void setup()
 {
-  reflectaFrames::setup(19200); // Communicate at 19200 baud
+  reflectaFrames::setup(9600); // Communicate at 19200 baud
   reflectaFunctions::setup();
   reflectaArduinoCore::setup();
 }

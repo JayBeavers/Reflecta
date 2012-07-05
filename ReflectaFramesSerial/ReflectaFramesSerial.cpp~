@@ -85,7 +85,6 @@ namespace reflectaFrames
     }
     writeEscaped(writeChecksum);
     Serial.write(END);
-    Serial.flush();
     
     return writeSequence++;
   }
