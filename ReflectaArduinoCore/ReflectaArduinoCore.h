@@ -36,6 +36,7 @@ namespace reflectaArduinoCore
   
   void servoAttach();
   void servoDetach();
+  void servoWrite();
   void servoWriteMicroseconds();
   
   void pulseIn();

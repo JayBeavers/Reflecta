@@ -103,7 +103,7 @@ namespace reflectaFunctions
   int parameterStackTop = -1;
   int16_t parameterStack[parameterStackMax + 1];
 
-  void push(int16_t w)
+  void push(int8_t w)
   {
     if (parameterStackTop == parameterStackMax)
     {
@@ -115,7 +115,20 @@ namespace reflectaFunctions
     }
   }
 
-  int16_t pop()
+  void push16(int16_t w)
+  {
+    if (parameterStackTop > parameterStackMax - 2)
+    {
+      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_OVERFLOW);
+    }
+    else
+    {
+      parameterStack[++parameterStackTop] = (w >> 8);
+      parameterStack[++parameterStackTop] = (w & 0xFF);
+    }
+  }
+
+  int8_t pop()
   {
     if (parameterStackTop == -1)
     {
@@ -125,6 +138,19 @@ namespace reflectaFunctions
     else
     {
       return parameterStack[parameterStackTop--];
+    }
+  }
+  
+  int16_t pop16()
+  {
+    if (parameterStackTop == -1 || parameterStackTop == 0)
+    {
+      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
+      return -1;
+    }
+    else
+    {
+      return (parameterStack[parameterStackTop--] + (parameterStack[parameterStackTop--] << 8));
     }
   }
   

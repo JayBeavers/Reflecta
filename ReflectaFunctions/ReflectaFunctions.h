@@ -27,9 +27,13 @@ namespace reflectaFunctions
   // Bind a function to an interfaceId so it can be called by Reflecta Functions.  The assigned frame id is returned.
   byte bind(String interfaceId, void (*function)());
   
-  void push(int16_t b);
+  void push(int8_t b);
   
-  int16_t pop();
+  void push16(int16_t b);
+  
+  int8_t pop();
+
+  int16_t pop16();
 
   // Send a response to a function call
   //   callerSequence == the sequence number of the frame used to call the function

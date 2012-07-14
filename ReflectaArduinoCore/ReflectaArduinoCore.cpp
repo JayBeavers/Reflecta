@@ -27,7 +27,7 @@ namespace reflectaArduinoCore
   
   void analogRead()
   {
-    push(::analogRead(pop()));
+    push16(::analogRead(pop()));
   }
   
   void analogWrite()
@@ -91,9 +91,14 @@ namespace reflectaArduinoCore
       servos[pop()].detach();
   }
 
+  void servoWrite()
+  {
+      servos[pop()].write(pop());
+  }
+  
   void servoWriteMicroseconds()
   {
-      servos[pop()].writeMicroseconds(pop());
+      servos[pop()].writeMicroseconds(pop16());
   }
   
   void pulseIn()
@@ -123,6 +128,7 @@ namespace reflectaArduinoCore
     
     reflectaFunctions::bind("ARDU1", servoAttach);
     reflectaFunctions::bind("ARDU1", servoDetach);
+    reflectaFunctions::bind("ARDU1", servoWrite);
     reflectaFunctions::bind("ARDU1", servoWriteMicroseconds);
 
     reflectaFunctions::bind("ARDU1", pulseIn);
