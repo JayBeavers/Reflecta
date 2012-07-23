@@ -85,6 +85,7 @@ namespace reflectaFrames
     }
     writeEscaped(writeChecksum);
     Serial.write(END);
+    Serial.flush();
     
     return writeSequence++;
   }
@@ -200,12 +201,17 @@ namespace reflectaFrames
   byte* frameBuffer;
   byte frameBufferLength;
   byte frameIndex = 0;
+
+  byte sequence;
+
+  // Millisecond counter for last time a frame was received.  Can be used to implement a 'deadman switch' when
+  // communications with a host PC are lost or interrupted.
+  uint32_t lastFrameReceived;
   
   // Read the uncoming data stream, to be called inside Arduino loop()
   void loop()
   {
     byte b;
-    byte seq;
     
     while (Serial.available())
     {
@@ -216,10 +222,10 @@ namespace reflectaFrames
           case WAITING_FOR_RECOVERY:
             break;
           case WAITING_FOR_SEQUENCE:
-            seq = b;
-            if (readSequence++ != seq)
+            sequence = b;
+            if (++readSequence != sequence)
             {
-              readSequence = seq;
+              readSequence = sequence;
               sendError(FRAMES_WARNING_OUT_OF_SEQUENCE);
             }
             frameBufferLength = frameBufferAllocationCallback(&frameBuffer);
@@ -239,6 +245,7 @@ namespace reflectaFrames
             }
             break;
           case PROCESS_PAYLOAD:
+            lastFrameReceived = millis();
             if (readChecksum == 0) // zero expected because finally XOR'd with itself
             {
               if (frameReceivedCallback != NULL)
