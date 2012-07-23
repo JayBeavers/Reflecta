@@ -143,33 +143,10 @@ namespace reflectaFunctions
   
   int16_t pop16()
   {
-<<<<<<< HEAD
-    if (frameLength > 0)
-    {
-        // TODO: Break frame into multiple function calls if present
-        if (frameLength > 2 && frame[0] == FUNCTIONS_PUSHARRAY)
-        {
-          byte length = frame[1];
-          for (int i = length + 1; i > 1; i--) // Do not include the length when pushing, just the data
-          {
-            push(frame[i]);
-          }
-        }
-        else if ((frame[0] & 0x80) == 0x80) // extended parser
-        {
-          if (extendedParser != NULL)
-            extendedParser(sequence, frameLength, frame);
-        }
-        else
-        {
-          run(sequence, frame[0]);
-        }
-=======
     if (parameterStackTop == -1 || parameterStackTop == 0)
     {
       reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
       return -1;
->>>>>>> 87d3c2800deaab97f27ae8ca6d033b58f523c8d6
     }
     else
     {
@@ -265,31 +242,6 @@ namespace reflectaFunctions
   //    interface id of the first method or 0 if not found
   void queryInterface()
   {
-<<<<<<< HEAD
-    const byte parameterLength = 5;
-    byte parameters[parameterLength];
-    for (int i = 0; i < parameterLength; i++)
-      parameters[i] = pop();
-        
-    for(int index = 0; index < indexOfInterfaces; index++)
-    {
-      String interfaceId = interfaceIds[index];
-      
-      // I could find no way to compare an Arduino String to byte* so I had to copy the
-      //   String into a buffer and use strncmp
-      char buffer[interfaceId.length() + 1];
-      interfaceId.toCharArray(buffer, interfaceId.length() + 1);
-      
-      if (strncmp((const char*)buffer, (const char *)(parameters), parameterLength) == 0)
-      {
-        sendResponse(sequence, 1, interfaceStart + index);
-        return;
-      }
-    }
-
-    byte buf[1] = { 0 };
-    sendResponse(sequence, 1, buf);
-=======
     for(int index = 0; index < indexOfInterfaces; index++)
     {
       push(interfaceIds[index][4]);
@@ -301,7 +253,6 @@ namespace reflectaFunctions
       push(6);
       sendResponseCount();
     }
->>>>>>> 87d3c2800deaab97f27ae8ca6d033b58f523c8d6
   }
 
   void setup()
