@@ -32,7 +32,7 @@ namespace reflectaFrames
   
   // Sequence number of the incoming frames.  Compared against the sequence number at the beginning of the incoming frame
   //  to detect out of sequence frames which would point towards lost data or corrupted data.
-  byte readSequence = 0;
+  byte nextSequence = 0;
   
   // Sequence number of the outgoing frames.
   byte writeSequence = 0;
@@ -79,13 +79,13 @@ namespace reflectaFrames
   {
     writeChecksum = 0;
     writeEscaped(writeSequence);
-    for (byte frameIndex = 0; frameIndex < frameLength; frameIndex++)
+    for (byte index = 0; index < frameLength; index++)
     {
-      writeEscaped(frame[frameIndex]);
+      writeEscaped(frame[index]);
     }
     writeEscaped(writeChecksum);
     Serial.write(END);
-    Serial.flush();
+    Serial.send_now();
     
     return writeSequence++;
   }
@@ -180,7 +180,7 @@ namespace reflectaFrames
   // Reset the communications protocol
   void reset()
   {
-    readSequence = 0;
+    nextSequence = 0;
     writeSequence = 0;
     Serial.flush();
   }
@@ -221,17 +221,22 @@ namespace reflectaFrames
         {
           case WAITING_FOR_RECOVERY:
             break;
+            
           case WAITING_FOR_SEQUENCE:
             sequence = b;
-            if (++readSequence != sequence)
+            if (nextSequence++ != sequence)
             {
-              readSequence = sequence;
+              sendMessage("Expected " + String(nextSequence - 1, HEX) + " received " + String(sequence, HEX) );
+              nextSequence = sequence + 1;
               sendError(FRAMES_WARNING_OUT_OF_SEQUENCE);
             }
+            
             frameBufferLength = frameBufferAllocationCallback(&frameBuffer);
             frameIndex = 0; // Reset the buffer pointer to beginning
+            readChecksum = sequence;
             state = WAITING_FOR_BYTECODE;
             break;
+            
           case WAITING_FOR_BYTECODE:
             if (frameIndex == frameBufferLength)
             {
@@ -244,13 +249,16 @@ namespace reflectaFrames
               frameBuffer[frameIndex++] = b;
             }
             break;
+            
           case PROCESS_PAYLOAD:
             lastFrameReceived = millis();
             if (readChecksum == 0) // zero expected because finally XOR'd with itself
             {
+              // TODO: add a MessageReceived callback too
+              
               if (frameReceivedCallback != NULL)
               {
-                frameReceivedCallback(readSequence, frameIndex - 1, frameBuffer);
+                frameReceivedCallback(sequence, frameIndex - 1, frameBuffer);
               }
             }
             else
