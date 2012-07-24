@@ -160,19 +160,18 @@ namespace reflectaFunctions
   // the stack so it's expected that 'PushArray 1 ResponseCount' is called first. 
   void sendResponseCount()
   {
-    int16_t count = pop();
-    byte size = 3 + 2 * count;
+    int8_t count = pop();
+    byte size = 3 + count;
     
     byte frame[size];
     
     frame[0] = FUNCTIONS_RESPONSE;
     frame[1] = callerSequence;
-    frame[2] = 2 * count;
+    frame[2] = count;
     for (int i = 0; i < count; i++)
     {
-      int16_t value = pop();
-      frame[3 + 2 * i] = value >> 8;
-      frame[4 + 2 * i] = value;
+      int8_t value = pop();
+      frame[3 + i] = value;
     }
     
     reflectaFrames::sendFrame(frame, size);
