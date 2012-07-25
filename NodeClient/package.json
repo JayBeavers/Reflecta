@@ -1,0 +1,23 @@
+{
+  "name": "reflecta",
+  "version": "0.1.0",
+  "dependencies": {
+    "serialport": "*"
+    },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*"
+    },
+  "description": "Node.js client for the Reflecta communications protocol for Arduino",
+  "main": "reflecta",
+  "engine": "node >= 0.8.1",
+  "scripts": {
+    "test": "mocha -u tdd"
+    },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JayBeavers/Reflecta.git"
+    },
+  "author": "jay.beavers@microsoft.com",
+  "license": "BSD"
+}
