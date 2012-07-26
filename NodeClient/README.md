@@ -11,4 +11,4 @@ Reflecta is a node.js client for communicating with an Arduino via the Reflecta 
 
 > reflecta.on('response', function(response) { console.log(response.sequence + ' : ' + response.message); });
 
-> reflecta.on('portOpen', function() { reflecta.sendFra,e([1]); });
+> reflecta.on('portOpen', function() { reflecta.sendFrame([1]); });
