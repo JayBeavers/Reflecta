@@ -99,11 +99,11 @@ namespace reflectaFunctions
     }
   }
 
-  const byte parameterStackMax = 15;
+  const byte parameterStackMax = 128;
   int parameterStackTop = -1;
-  int16_t parameterStack[parameterStackMax + 1];
+  int8_t parameterStack[parameterStackMax + 1];
 
-  void push(int8_t w)
+  void push(int8_t b)
   {
     if (parameterStackTop == parameterStackMax)
     {
@@ -111,7 +111,7 @@ namespace reflectaFunctions
     }
     else
     {
-      parameterStack[++parameterStackTop] = w;
+      parameterStack[++parameterStackTop] = b;
     }
   }
 
@@ -229,29 +229,27 @@ namespace reflectaFunctions
     callerSequence = sequence;
     frameTop = frame + frameLength;
 
-    while (execution != frameTop)
-    {
+    while (execution != frameTop) {
       run(*execution++);
     }
   }
 
-  // queryInterface is called by invoking function and passing as a
-  //   parameter the interface id.
-  // It returns the result by sending a response containing either the
-  //    interface id of the first method or 0 if not found
-  void queryInterface()
-  {
-    for(int index = 0; index < indexOfInterfaces; index++)
-    {
-      push(interfaceIds[index][4]);
-      push(interfaceIds[index][3]);
-      push(interfaceIds[index][2]);
-      push(interfaceIds[index][1]);
-      push(interfaceIds[index][0]);
+  // queryInterface is called by invoking function.  It returns a response
+  // packet containing the interface id and start index of each registered
+  // interface
+  void queryInterface() {
+    
+    const int interfaceIdLength = 5;
+    
+    for(int index = 0; index < indexOfInterfaces; index++) {
+      for (int stringIndex = interfaceIdLength - 1; stringIndex > -1; stringIndex--) { 
+        push(interfaceIds[index][stringIndex]);
+      }
       push(interfaceStart[index]);
-      push(6);
-      sendResponseCount();
     }
+    
+    push((interfaceIdLength + 1) * indexOfInterfaces); // each interface contributes 1 payload byte for startIndex and 'n' bytes for the interfaceId string
+    sendResponseCount();
   }
 
   void setup()

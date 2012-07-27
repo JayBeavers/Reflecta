@@ -40,6 +40,13 @@ function Reflecta() {
     0x04 : 'FRAMES_ERROR_BUFFER_OVERFLOW'
   };
   
+  var FunctionIds = {
+    pushArray           : [ 0x00 ],
+    queryInterface      : [ 0x01 ],
+    sendResponseCount   : [ 0x7B ],
+    sendResponse        : [ 0x7C ]
+  };
+  
   var writeArray = []; // Space to compose an outgoing frame of data
   var writeArrayIndex = 0;
   
@@ -66,8 +73,15 @@ function Reflecta() {
       writeChecksum ^= b;
     }
   
-  var sendFrame = function(frame) {
+  var sendFrame = function(frame, frame2) {
   
+    if (!Buffer.isBuffer(frame)) frame = new Buffer(frame);
+    
+    if (frame2) {
+      if (!Buffer.isBuffer(frame2)) frame2 = new Buffer(frame2);
+      frame = Buffer.concat(frame, frame2);
+    }
+    
     // Artificial 8-bit rollover
     if (writeSequence == 256) writeSequence = 0;
     
@@ -241,6 +255,59 @@ function Reflecta() {
   events.EventEmitter.call(this);
   
   this.sendFrame = sendFrame;
+  
+  // Push an 'n' count of 'parameter' data onto the stack where n == the next byte
+  // in the frame after the pushArray function id, followed by the next n bytes of
+  // data.
+  // For example, a frame of [ 1 4 9 8 7 6 ] would mean:
+  // [ 1 ]              pushArray
+  //   [ 4 ]            count of parameter data
+  //     [ 9 8 7 6 ]    parameter data to be pushed on the stack
+  this.pushArray = function(array) {
+    
+    sendFrame(FunctionIds.pushArray, array);
+    
+  };
+  
+  // Query the interfaces (e.g. function groups) bound on the Arduino
+  this.queryInterface = function(callback) {
+    
+    var callSequence = sendFrame(FunctionIds.queryInterface);
+    
+    self.once('response', function(response) {
+      if (response.sequence == callSequence) {
+        callback(null, response.message);
+      }
+      
+    });
+  };
+  
+  // Request a response with n bytes from the stack, where n == the first byte on the stack
+  this.sendResponseCount = function(count, callback) {
+    
+    var callSequence = sendFrame(FunctionIds.sendResponseCount, count);
+    
+    self.once('response', function(response) {
+      if (response.sequence == callSequence) {
+        callback(null, response.message);
+      }
+      
+    });
+  };
+  
+  // Request a response with 1 byte from the stack
+  this.sendResponse = function(callback) {
+    
+    var callSequence = sendFrame(FunctionIds.sendResponse);
+        
+    self.once('response', function(response) {
+      if (response.sequence == callSequence) {
+        callback(null, response.message);
+      }
+
+    });
+  };
+  
 }
 
 util.inherits(Reflecta, events.EventEmitter);
