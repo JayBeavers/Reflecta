@@ -1,14 +1,23 @@
 var events = require('events');
 var util = require('util');
-var serialPort = new (require("serialport").SerialPort)('/dev/ttyACM0');
 
-function Reflecta() {
+function Reflecta(path, options, callback) {
   
   if (false === (this instanceof Reflecta)) {
     return new Reflecta();
   }
 
   var self = this;
+
+  if (!callback || typeof callback != "function") {
+    callback = options;   // callback must be the second parameter
+    options = undefined;  // no option passed
+  }
+  
+  var serialPort = new (require("serialport").SerialPort)(path, options);
+  if (callback) {
+    serialPort.once('open', callback);
+  }
   
   // SLIP (http://www.ietf.org/rfc/rfc1055.txt) protocol special character definitions
   // Used to find end of frame when using a streaming communications protocol

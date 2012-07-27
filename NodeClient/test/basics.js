@@ -4,7 +4,14 @@ suite('Hello', function() {
     test('Reflecta', function(done) {
         
         var Reflecta = require('../reflecta.js');
-        var reflecta = new Reflecta();
+        var reflecta = new Reflecta("COM10", function(err) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            
+            reflecta.sendFrame([1]);
+        });
         
         reflecta.on('error', function(err) { console.log(err); });
         reflecta.on('message', function(message) { console.log(message); });
@@ -13,10 +20,6 @@ suite('Hello', function() {
         reflecta.on('portClose', function() { console.log('portClose'); });
         reflecta.on('portEnd', function() { console.log('portEnd'); });
         reflecta.on('portError', function(err) { console.log('portError: ' + err); });
-
-        // Send a frame once the port is open and ready to be used
-        reflecta.on('portOpen', function() { reflecta.sendFrame([1]); });
-        
-        // Note: should consider a more 'jQuery-esque' form of this such as 'onReady' or perhaps a callback in the ctor?
+        reflecta.on('portOpen', function() { console.log('portOpen'); });
     });
 });
