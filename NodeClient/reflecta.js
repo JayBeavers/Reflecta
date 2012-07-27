@@ -94,7 +94,6 @@ function Reflecta() {
   var readArray = [];
   var readArrayIndex = 0;
   
-  var escaped = false;
   var readState = ReadState.ReadingSequence;
   
   var readSequence = 0;
@@ -102,6 +101,7 @@ function Reflecta() {
   
   var escaped = false;
   var readUnescaped = function() {
+    
       var b = readArray[readArrayIndex++];
       
       if (escaped) {
@@ -112,7 +112,6 @@ function Reflecta() {
           case EscapeCharacters.ESCAPED_ESCAPE:
             return EscapeCharacters.ESCAPE;
           default:
-            console.log('unexpected escape');
             self.emit('error', 'Local: frame corrupt, unexpected escape');
             readState = ReadState.WaitingForEnd;
             return null;
@@ -132,6 +131,7 @@ function Reflecta() {
   var frameIndex = 0;
   
   var parseFrame = function(data) {
+    
       readArray = data;
       readArrayIndex = 0;
             
@@ -154,7 +154,7 @@ function Reflecta() {
           
           // zero expected because when CRC of data is XORed with Checksum byte it should equal zero
           if (readChecksum != 0) {
-            console.log('Node crc mismatch');
+            
             self.emit('error', 'Local: frame corrupt, crc mismatch');
             
           } else { 
@@ -164,7 +164,6 @@ function Reflecta() {
               
               case FrameTypes.Error:
                 
-                console.log("Node error: " + ErrorCodes[frameBuffer[1]]);
                 self.emit('error', 'Remote: ' + ErrorCodes[frameBuffer[1]]);
                 
                 break;
@@ -172,7 +171,6 @@ function Reflecta() {
               case FrameTypes.Message:
                 
                 var length = frameBuffer[1];
-                console.log("Node Message: " + new Buffer(frameBuffer).toString('utf8', 2, length + 2));
                 self.emit('message', new Buffer(frameBuffer).toString('utf8', 2, length + 2));
     
                 break;
@@ -183,7 +181,6 @@ function Reflecta() {
                 var length = frameBuffer[2];
                 // Broken, assumes the response is a text message!!!
                 var message = new Buffer(frameBuffer).toString('utf8', 3, length + 3);
-                console.log("Node Response to " + responseToSequence.toString(16) + " : " + message);
                 self.emit('response', { sequence: responseToSequence, message: message });
                 
                 break;
@@ -206,7 +203,6 @@ function Reflecta() {
         switch (readState) {
           
           case ReadState.WaitingForEnd:
-            console.log('w ' + b.toString(16));
             
             break;
             
@@ -215,7 +211,6 @@ function Reflecta() {
             frameSequence = b;
             
             if (readSequence++ != frameSequence) {
-              console.log("Node Expected " + (readSequence - 1).toString(16) + " received " + frameSequence.toString(16) );
               readSequence = frameSequence + 1;
             }
             
@@ -238,10 +233,10 @@ function Reflecta() {
   }
   
   serialPort.on('data', parseFrame);
-  serialPort.on('open', function() { console.log('open');  self.emit('portOpen'); });
-  serialPort.on('close', function() { console.log('close'); self.emit('portClose'); });
-  serialPort.on('end', function() { console.log('end'); self.emit('portEnd'); });
-  serialPort.on('error', function(err) { console.log('error '  + err); self.emit('portError', err); });
+  serialPort.on('open', function() { self.emit('portOpen'); });
+  serialPort.on('close', function() { self.emit('portClose'); });
+  serialPort.on('end', function() { self.emit('portEnd'); });
+  serialPort.on('error', function(err) { self.emit('portError', err); });
   
   events.EventEmitter.call(this);
   
