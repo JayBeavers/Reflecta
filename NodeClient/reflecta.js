@@ -81,39 +81,7 @@ function Reflecta(path, options, callback) {
       
       writeChecksum ^= b;
     }
-  
-  var sendFrame = function(frame, frame2) {
-  
-    if (!Buffer.isBuffer(frame)) frame = new Buffer(frame);
     
-    if (frame2) {
-      if (!Buffer.isBuffer(frame2)) frame2 = new Buffer(frame2);
-      frame = Buffer.concat(frame, frame2);
-    }
-    
-    // Artificial 8-bit rollover
-    if (writeSequence == 256) writeSequence = 0;
-    
-    // Reinitialize the writeArray and checksum
-    writeChecksum = 0;
-    writeArray = [];
-    writeArrayIndex = 0;
-  
-    writeEscaped(writeSequence);
-    
-    for (var index = 0; index < frame.length; index++) {
-      writeEscaped(frame[index]);
-    }
-    
-    writeEscaped(writeChecksum);
-    
-    writeArray[writeArrayIndex++] = EscapeCharacters.END;
-    
-    serialPort.write(writeArray);
-    
-    return writeSequence++;
-  };
-  
   var readArray = [];
   var readArrayIndex = 0;
   
@@ -187,7 +155,7 @@ function Reflecta(path, options, callback) {
               
               case FrameTypes.Error:
                 
-                self.emit('error', 'Remote: ' + ErrorCodes[frameBuffer[1]]);
+                self.emit('error', 'Remote: ' + frameBuffer[1] + ' : ' + ErrorCodes[frameBuffer[1]]);
                 
                 break;
     
@@ -263,7 +231,50 @@ function Reflecta(path, options, callback) {
   
   events.EventEmitter.call(this);
   
-  this.sendFrame = sendFrame;
+  this.close = function(callback) { serialPort.close(callback); };
+  
+  this.sendFrame = function(frame, frame2, frame3, frame4) {
+  
+    if (!Buffer.isBuffer(frame)) frame = new Buffer(frame);
+    
+    // This smells like something better done with params :-)
+    if (frame2) {
+      if (!Buffer.isBuffer(frame2)) frame2 = new Buffer(frame2);
+      frame = Buffer.concat( [frame, frame2] );
+    }
+
+    if (frame3) {
+      if (!Buffer.isBuffer(frame3)) frame3 = new Buffer(frame3);
+      frame = Buffer.concat( [frame, frame3] );
+    }
+
+    if (frame4) {
+      if (!Buffer.isBuffer(frame4)) frame4 = new Buffer(frame4);
+      frame = Buffer.concat( [frame, frame4] );
+    }
+    
+    // Artificial 8-bit rollover
+    if (writeSequence == 256) writeSequence = 0;
+    
+    // Reinitialize the writeArray and checksum
+    writeChecksum = 0;
+    writeArray = [];
+    writeArrayIndex = 0;
+  
+    writeEscaped(writeSequence);
+    
+    for (var index = 0; index < frame.length; index++) {
+      writeEscaped(frame[index]);
+    }
+    
+    writeEscaped(writeChecksum);
+    
+    writeArray[writeArrayIndex++] = EscapeCharacters.END;
+    
+    serialPort.write(writeArray);
+    
+    return writeSequence++;
+  };
   
   // Push an 'n' count of 'parameter' data onto the stack where n == the next byte
   // in the frame after the pushArray function id, followed by the next n bytes of
@@ -315,6 +326,46 @@ function Reflecta(path, options, callback) {
       }
 
     });
+  };
+  
+  var interfaceStart = 2;
+  this.ardu1 = {
+    
+    gpio : {
+      pinMode : function(pin, mode) { console.log(interfaceStart); sendFrame(interfaceStart); },
+
+      digitalRead : function(pin, callback) {
+        // This smells like we need a 'sendFrameWithResponseCallback'
+        self.sendFrame( [FunctionIds.pushArray, 1, pin, interfaceStart + 1] );
+        self.sendResponse(callback);
+      },
+
+      digitalWrite : function(pin, value) {
+        self.sendFrame( [FunctionIds.pushArray, 2, pin, value, interfaceStart + 2] );
+      },
+
+      analogRead : function() { sendFrame(interfaceStart + 3); },
+      analogWrite : function() { sendFrame(interfaceStart + 4); },
+      pulseIn : function() { sendFrame(interfaceStart + 17); }
+    },
+    
+    wire : {
+      beginMaster : function() { sendFrame(interfaceStart + 5); },
+      requestFrom : function() { sendFrame(interfaceStart + 6); },
+      requestFromStart : function() { sendFrame(interfaceStart + 7); },
+      available : function() { sendFrame(interfaceStart + 8); },
+      read : function() { sendFrame(interfaceStart + 9); },
+      beginTransmission : function() { sendFrame(interfaceStart + 10); },
+      write : function() { sendFrame(interfaceStart + 11); },
+      endTransmission : function() { sendFrame(interfaceStart + 12); }
+    },
+    
+    servo : {
+      attach : function() { sendFrame(interfaceStart + 13); },
+      detach : function() { sendFrame(interfaceStart + 14); },
+      write : function() { sendFrame(interfaceStart + 15); },
+      writeMicroseconds : function() { sendFrame(interfaceStart + 16); }
+    }
   };
   
 }
