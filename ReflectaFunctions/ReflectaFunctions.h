@@ -54,7 +54,7 @@ namespace reflectaFunctions
   // Generally speaking execution should not go beyong frameTop.  When
   // execution == frameTop, the Reflecta Functions frameReceived execution loop
   // stops. 
-  extern byte* frameTop;  
+  extern byte* frameTop;
 };
 
 #endif
