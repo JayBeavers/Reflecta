@@ -35,6 +35,22 @@ namespace reflectaHeartbeat
     }
   }
   
+  void pushf(float f)
+  {
+    if (heartbeatStackTop > heartbeatStackMax - 4)
+    {
+      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_OVERFLOW);
+    }
+    else
+    {
+      byte* pb = (byte*)&f;
+      heartbeatStack[++heartbeatStackTop] = pb[0];
+      heartbeatStack[++heartbeatStackTop] = pb[1];
+      heartbeatStack[++heartbeatStackTop] = pb[2];
+      heartbeatStack[++heartbeatStackTop] = pb[3];
+    }
+  }
+  
   int8_t pop()
   {
     if (heartbeatStackTop == -1)
@@ -49,13 +65,18 @@ namespace reflectaHeartbeat
   }
 
   
-  // Function table that relates function id -> function
-  bool (*heartbeatFunctions[16])();
+  const int MaxFunctions = 16;
+  
+  // Function table of all functions to call in heartbeat
+  bool (*heartbeatFunctions[MaxFunctions])();
 
-  // Function table that relates function id -> function
-  bool (*currentFunctions[16])();
+  // Has the function finished for this heartbeat
+  bool functionComplete[MaxFunctions];
 
-  void bind(bool (*function)()) { };
+  int functionsTop = 0;
+  void bind(bool (*function)()) {
+    heartbeatFunctions[functionsTop++] = function;
+  };
   
   uint16_t millisBetweenFrames = 10;
   
@@ -76,21 +97,35 @@ namespace reflectaHeartbeat
       reflectaFrames::sendFrame(frame, heartbeatStackTop + 1);
   };
   
+  bool finished = false;
   unsigned long nextFrame = 0;
   void loop() {
     
-    unsigned long currentTime = millis();
-    
-    if (currentTime >= nextFrame) {
-      sendHeartbeat();
-      
-      nextFrame = currentTime + millisBetweenFrames;
-      idleLoops = 0;
-      
-    } else {
-      
-      idleLoops++;
-      
+    if (!finished) {
+      finished = true;
+      for (int i = 0; i < functionsTop; i++) {
+        if (!functionComplete[i]) {
+          functionComplete[i] = heartbeatFunctions[i]();
+          if (!functionComplete[i]) finished = false;
+        }
+      }
     }
+    
+    if (finished) {
+      unsigned long currentTime = millis();
+      if (currentTime >= nextFrame) {
+        sendHeartbeat();
+        
+        nextFrame = currentTime + millisBetweenFrames;
+        idleLoops = 0;
+        
+        for (int i = 0; i < MaxFunctions; i++) functionComplete[i] = false;
+        finished = false;
+        
+      } else {
+        idleLoops++;
+      }
+    }
+    
   };
 };

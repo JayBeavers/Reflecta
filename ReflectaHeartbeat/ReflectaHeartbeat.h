@@ -29,7 +29,9 @@ namespace reflectaHeartbeat
   
   void push(int8_t b);
   
-  void push16(int16_t b);
+  void push16(int16_t w);
+  
+  void pushf(float f);
   
   // Bind a function to an interfaceId so it can be called by Reflecta Functions.  The assigned frame id is returned.
   void bind(bool (*function)());
