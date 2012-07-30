@@ -36,9 +36,10 @@ function Reflecta(path, options, callback) {
   };
   
   var FrameTypes = {
-    Response : 0x7D,
-    Message  : 0x7E,
-    Error    : 0x7F
+    Heartbeat   : 0x7A,
+    Response    : 0x7D,
+    Message     : 0x7E,
+    Error       : 0x7F
   };
   
   var ErrorCodes = {
@@ -212,6 +213,13 @@ function Reflecta(path, options, callback) {
                 // Broken, assumes the response is a text message!!!
                 var message = new Buffer(frameBuffer).toString('utf8', 3, length + 3);
                 self.emit('response', { sequence: responseToSequence, message: message });
+                
+                break;
+              
+              case FrameTypes.Heartbeat:
+    
+                var freeCycles = frameBuffer[1] + (frameBuffer[0] << 8);
+                self.emit('heartbeat', { freeCycles: freeCycles, data: new Buffer(frameBuffer).slice(3) });
                 
                 break;
               
