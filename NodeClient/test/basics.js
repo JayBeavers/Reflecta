@@ -50,7 +50,7 @@ describe('Hello', function() {
     });
     
     // Meant to be run when Reflecta has the ReflectaHeartbeat turned on and running
-    it('Heartbeat', function(done) {
+    it('BasicHeartbeat', function(done) {
 
       var Reflecta = require('../reflecta.js');
       var reflecta = new Reflecta("COM10", function(err) {
@@ -67,6 +67,25 @@ describe('Hello', function() {
         
         setTimeout(function() { reflecta.close(done); }, 1700);
       });
-  });
+    });
 
+    // Meant to be run as the client for BasicIMU
+    it('HeartbeatIMU', function(done) {
+
+      var Reflecta = require('../reflecta.js');
+      var reflecta = new Reflecta("COM10", function(err) {
+        if (err) {
+          reflecta.close(function() { done(err); });
+          return;
+        }
+
+        reflecta.on('error', function(err, frame, checksum) { console.log(err + ' - ' + util.inspect(frame) + ' - ' + checksum); });
+        reflecta.on('portError', function(err) { console.log(err); });
+        
+        reflecta.on('message', function(message) { console.log(message); });
+        reflecta.on('heartbeat', function(heartbeat) { console.log(heartbeat.freeCycles + " : " + util.inspect(heartbeat.data)); });
+        
+        setTimeout(function() { reflecta.close(done); }, 1700);
+      });
+    });
 });
