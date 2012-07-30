@@ -9,6 +9,8 @@
 #ifndef REFLECTA_HEARTBEAT_H
 #define REFLECTA_HEARTBEAT_H
 
+#define HEARTBEAT_MESSAGE 0x7A
+
 namespace reflectaHeartbeat
 {
   // How HB works:
@@ -30,7 +32,7 @@ namespace reflectaHeartbeat
   void push16(int16_t b);
   
   // Bind a function to an interfaceId so it can be called by Reflecta Functions.  The assigned frame id is returned.
-  byte bind(String interfaceId, void (*function)());
+  void bind(bool (*function)());
   
   void setFrameRate(int framesPerSecond);
   

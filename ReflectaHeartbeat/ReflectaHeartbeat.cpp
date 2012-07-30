@@ -35,10 +35,62 @@ namespace reflectaHeartbeat
     }
   }
   
-  byte bind(String interfaceId, void (*function)()) { return NULL; };
+  int8_t pop()
+  {
+    if (heartbeatStackTop == -1)
+    {
+      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
+      return -1;
+    }
+    else
+    {
+      return heartbeatStack[heartbeatStackTop--];
+    }
+  }
+
   
-  void setFrameRate(int framesPerSecond) { };
+  // Function table that relates function id -> function
+  bool (*heartbeatFunctions[16])();
+
+  // Function table that relates function id -> function
+  bool (*currentFunctions[16])();
+
+  void bind(bool (*function)()) { };
   
-  void loop() { };
+  uint16_t millisBetweenFrames = 10;
   
+  void setFrameRate(int framesPerSecond) { millisBetweenFrames = 1000 / framesPerSecond; };
+  
+  uint16_t idleLoops = 0;
+  void sendHeartbeat() {
+      push16(idleLoops);
+      push(HEARTBEAT_MESSAGE);
+      
+      byte frame[heartbeatStackTop + 1];
+      
+      for (int i = 0; i < heartbeatStackTop + 1; i++)
+      {
+        frame[i] = pop();
+      }
+      
+      reflectaFrames::sendFrame(frame, heartbeatStackTop + 1);
+  };
+  
+  unsigned long nextFrame = 0;
+  void loop() {
+    
+    unsigned long currentTime = millis();
+    
+    if (currentTime >= nextFrame) {
+      sendHeartbeat();
+      
+      nextFrame = currentTime + millisBetweenFrames;
+      idleLoops = 0;
+      
+    } else {
+      
+      idleLoops++;
+      
+    }
+  };
 };

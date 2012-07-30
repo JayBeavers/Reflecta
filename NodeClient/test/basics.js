@@ -1,8 +1,9 @@
 var assert = require('chai').assert;
+var util = require('util');
 
-suite('Hello', function() {
+describe('Hello', function() {
     
-    test('Reflecta', function(done) {
+    it('Reflecta', function(done) {
         
         var Reflecta = require('../reflecta.js');
         var reflecta = new Reflecta("COM10", function(err) {
@@ -29,7 +30,7 @@ suite('Hello', function() {
         reflecta.on('portOpen', function() { console.log('portOpen'); });
     });
     
-    test('Blinky', function(done) {
+    it('Blinky', function(done) {
 
         var Reflecta = require('../reflecta.js');
         var reflecta = new Reflecta("COM10", function(err) {
@@ -47,4 +48,24 @@ suite('Hello', function() {
             setTimeout(function() { reflecta.close(done); }, 1700);
         });
     });
+    
+    // Meant to be run when Reflecta has the ReflectaHeartbeat turned on and running
+    it('Heartbeat', function(done) {
+
+      var Reflecta = require('../reflecta.js');
+      var reflecta = new Reflecta("COM10", function(err) {
+          if (err) {
+            reflecta.close(function() { done(err); });
+            return;
+          }
+
+          reflecta.on('error', function(err, frame, checksum) { console.log(err + ' - ' + util.inspect(frame) + ' - ' + checksum); });
+          reflecta.on('portError', function(err) { console.log(err); });
+          
+          reflecta.on('frame', function(frame) { console.log(frame.sequence + " : " + frame.data + ' : ' + util.inspect(frame.frame)); });
+          
+          setTimeout(function() { reflecta.close(done); }, 1700);
+      });
+  });
+
 });
