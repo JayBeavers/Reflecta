@@ -4,6 +4,7 @@
 #include <ReflectaFramesSerial.h>
 #include <ReflectaFunctions.h>
 #include <ReflectaArduinoCore.h>
+#include <ReflectaHeartbeat.h>
 
 // Very simple Arduino sketch for using reflecta.  Opens a COM port
 // and exposes the ArduinoCore functions (pinMode, digitalRead, etc.)
@@ -18,4 +19,5 @@ void setup()
 void loop()
 {
   reflectaFrames::loop();
+  reflectaHeartbeat::loop();
 }

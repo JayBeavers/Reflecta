@@ -36,9 +36,10 @@ function Reflecta(path, options, callback) {
   };
   
   var FrameTypes = {
-    Response : 0x7D,
-    Message  : 0x7E,
-    Error    : 0x7F
+    Heartbeat   : 0x7A,
+    Response    : 0x7D,
+    Message     : 0x7E,
+    Error       : 0x7F
   };
   
   var ErrorCodes = {
@@ -96,6 +97,7 @@ function Reflecta(path, options, callback) {
       var b = readArray[readArrayIndex++];
       
       if (escaped) {
+        escaped = false;
         switch (b)
         {
           case EscapeCharacters.ESCAPED_END:
@@ -112,6 +114,22 @@ function Reflecta(path, options, callback) {
       if (b == EscapeCharacters.ESCAPE) {
         escaped = true;
         return null;      
+      } 
+      
+      if (b == EscapeCharacters.END) {
+        switch (readState)
+        {
+          case ReadState.WaitingForEnd:
+            readState = ReadState.ReadingSequence;
+            break;
+          case ReadState.ReadingFrame:
+            readState = ReadState.ProcessingFrame;
+            break;
+          default:
+            self.emit('error', 'Local: frame corrupt, unexpected end');
+            readState = ReadState.WaitingForEnd;
+            break;
+        }
       }
       
       return b;
@@ -123,30 +141,52 @@ function Reflecta(path, options, callback) {
   
   var parseFrame = function(data) {
     
-      readArray = data;
-      readArrayIndex = 0;
-            
-      while (readArrayIndex < readArray.length)
-      {    
-        var b = readUnescaped();
-        
-        // Either escape character or an error, either way ignore this data
-        if (b == null) {
-          continue;
-        }
-        
-        if (b == EscapeCharacters.END) { // end of frame detected, process the data accumulated in the frameBuffer
+    readArray = data;
+    readArrayIndex = 0;
           
-          if (readState == ReadState.WaitingForEnd) {
-            // throw away the previous data and start fresh
-            readState = ReadState.ReadingSequence;
-            continue;
+    while (readArrayIndex < readArray.length)
+    {
+      var b = readUnescaped();
+      
+      // Either escape character or an error, either way ignore this data
+      if (b == null) {
+        continue;
+      }
+                                  
+      switch (readState) {
+        
+        case ReadState.WaitingForEnd:
+          
+          break;
+          
+        case ReadState.ReadingSequence:
+          
+          frameSequence = b;
+          
+          if (readSequence++ != frameSequence) {
+            readSequence = frameSequence + 1;
           }
           
+          readChecksum = b; // Start off a new checksum
+          frameBuffer = []; // Reinitialize the buffer since we send using frameBuffer.length
+          frameIndex = 0; // Reset the buffer pointer to beginning
+
+          readState = ReadState.ReadingFrame;
+          
+          break;
+          
+        case ReadState.ReadingFrame:
+          
+          frameBuffer[frameIndex++] = b;
+          readChecksum ^= b;
+          
+          break;
+          
+        case ReadState.ProcessingFrame:
           // zero expected because when CRC of data is XORed with Checksum byte it should equal zero
           if (readChecksum != 0) {
             
-            self.emit('error', 'Local: frame corrupt, crc mismatch');
+            self.emit('error', 'Local: frame corrupt, crc mismatch', data, readChecksum);
             
           } else { 
             
@@ -176,11 +216,18 @@ function Reflecta(path, options, callback) {
                 
                 break;
               
+              case FrameTypes.Heartbeat:
+    
+                var freeCycles = frameBuffer[1] + (frameBuffer[0] << 8);
+                self.emit('heartbeat', { freeCycles: freeCycles, data: new Buffer(frameBuffer).slice(3) });
+                
+                break;
+              
               // FrameType unknown, use a generic frame received callback
               default:
                 
                 // TODO: consider expressing this as multiple params?
-                self.emit('frame', { sequence: frameSequence, data: frameBuffer });
+                self.emit('frame', { sequence: frameSequence, data: frameBuffer, frame: data });
                   
                 break;
                 
@@ -188,38 +235,8 @@ function Reflecta(path, options, callback) {
           }
           
           readState = ReadState.ReadingSequence;
-          continue;
-        }
-        
-        switch (readState) {
-          
-          case ReadState.WaitingForEnd:
-            
-            break;
-            
-          case ReadState.ReadingSequence:
-            
-            frameSequence = b;
-            
-            if (readSequence++ != frameSequence) {
-              readSequence = frameSequence + 1;
-            }
-            
-            readChecksum = b; // Start off a new checksum
-            frameBuffer = []; // Reinitialize the buffer since we send using frameBuffer.length
-            frameIndex = 0; // Reset the buffer pointer to beginning
-  
-            readState = ReadState.ReadingFrame;
-            
-            break;
-            
-          case ReadState.ReadingFrame:
-            
-            frameBuffer[frameIndex++] = b;
-            readChecksum ^= b;
-            
-            break;
-      }
+          break;
+      }            
     }
   }
   
