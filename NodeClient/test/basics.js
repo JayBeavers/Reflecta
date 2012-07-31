@@ -83,7 +83,34 @@ describe('Hello', function() {
         reflecta.on('portError', function(err) { console.log(err); });
         
         reflecta.on('message', function(message) { console.log(message); });
-        reflecta.on('heartbeat', function(heartbeat) { console.log(heartbeat.freeCycles + " : " + util.inspect(heartbeat.data)); });
+        reflecta.on('heartbeat', function(heartbeat) {
+          // Break the incoming data into floats
+          var arrayBuffer = new ArrayBuffer(heartbeat.data.length);
+          var byteView = new Uint8Array(arrayBuffer);
+          var floatView = new Float32Array(arrayBuffer);
+          
+          byteView.set(heartbeat.data);
+          
+          var hbData = {
+            gyroscope: {
+              x: floatView[0],
+              y: floatView[1],
+              z: floatView[2]
+            },
+            accelerometer: {
+              x: floatView[3],
+              y: floatView[4],
+              z: floatView[5]
+            },
+            magnometer: {
+              x: floatView[6],
+              y: floatView[7],
+              z: floatView[8]
+            }
+          };
+              
+          console.log(heartbeat.freeCycles + " : " + util.inspect(hbData));
+        });
         
         setTimeout(function() { reflecta.close(done); }, 1700);
       });

@@ -44,10 +44,10 @@ namespace reflectaHeartbeat
     else
     {
       byte* pb = (byte*)&f;
-      heartbeatStack[++heartbeatStackTop] = pb[0];
-      heartbeatStack[++heartbeatStackTop] = pb[1];
-      heartbeatStack[++heartbeatStackTop] = pb[2];
       heartbeatStack[++heartbeatStackTop] = pb[3];
+      heartbeatStack[++heartbeatStackTop] = pb[2];
+      heartbeatStack[++heartbeatStackTop] = pb[1];
+      heartbeatStack[++heartbeatStackTop] = pb[0];
     }
   }
   
@@ -78,27 +78,30 @@ namespace reflectaHeartbeat
     heartbeatFunctions[functionsTop++] = function;
   };
   
-  uint16_t millisBetweenFrames = 10;
+  unsigned long microsBetweenFrames = 100000;
   
-  void setFrameRate(int framesPerSecond) { millisBetweenFrames = 1000 / framesPerSecond; };
+  void setFrameRate(int framesPerSecond) {
+    microsBetweenFrames = 1000000 / framesPerSecond;
+  };
   
   uint16_t idleLoops = 0;
   void sendHeartbeat() {
       push16(idleLoops);
       push(HEARTBEAT_MESSAGE);
       
-      byte frame[heartbeatStackTop + 1];
+      byte heartbeatSize = heartbeatStackTop + 1; 
+      byte frame[heartbeatSize];
       
-      for (int i = 0; i < heartbeatStackTop + 1; i++)
+      for (int i = 0; i < heartbeatSize; i++)
       {
         frame[i] = pop();
       }
       
-      reflectaFrames::sendFrame(frame, heartbeatStackTop + 1);
+      reflectaFrames::sendFrame(frame, heartbeatSize);
   };
   
   bool finished = false;
-  unsigned long nextFrame = 0;
+  unsigned long nextHeartbeat = 0;
   void loop() {
     
     if (!finished) {
@@ -112,20 +115,20 @@ namespace reflectaHeartbeat
     }
     
     if (finished) {
-      unsigned long currentTime = millis();
-      if (currentTime >= nextFrame) {
+      unsigned long currentTime = micros();
+      if (currentTime >= nextHeartbeat) {
         sendHeartbeat();
         
-        nextFrame = currentTime + millisBetweenFrames;
+        nextHeartbeat = currentTime + microsBetweenFrames;
         idleLoops = 0;
         
-        for (int i = 0; i < MaxFunctions; i++) functionComplete[i] = false;
-        finished = false;
-        
+        for (int i = 0; i < MaxFunctions; i++) { 
+          functionComplete[i] = false;
+          finished = false;
+        }
       } else {
         idleLoops++;
-      }
+      };
     }
-    
   };
 };

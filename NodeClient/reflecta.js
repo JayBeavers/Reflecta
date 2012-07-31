@@ -217,9 +217,9 @@ function Reflecta(path, options, callback) {
                 break;
               
               case FrameTypes.Heartbeat:
-    
-                var freeCycles = frameBuffer[1] + (frameBuffer[0] << 8);
-                self.emit('heartbeat', { freeCycles: freeCycles, data: new Buffer(frameBuffer).slice(3) });
+                
+                var freeCycles = frameBuffer[1] + (frameBuffer[2] << 8);
+                self.emit('heartbeat', { freeCycles: freeCycles, data: new Buffer(frameBuffer).slice(3, frameBuffer.length - 1) });
                 
                 break;
               
