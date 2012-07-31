@@ -3,7 +3,7 @@ var util = require('util');
 
 function Reflecta(path, options, callback) {
   
-  if (false === (this instanceof Reflecta)) {
+  if (!(this instanceof Reflecta)) {
     return new Reflecta();
   }
 
