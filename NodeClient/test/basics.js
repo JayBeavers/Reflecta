@@ -109,7 +109,7 @@ describe('Hello', function() {
             }
           };
               
-          console.log(heartbeat.freeCycles + " : " + util.inspect(hbData));
+          console.log(heartbeat.collectingLoops + " : " + heartbeat.idleLoops + " : " + util.inspect(hbData));
 
         });
         

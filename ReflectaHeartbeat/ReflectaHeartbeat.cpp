@@ -84,9 +84,18 @@ namespace reflectaHeartbeat
     microsBetweenFrames = 1000000 / framesPerSecond;
   };
   
-  uint32_t idleLoops = 0;
+  // Number of times loop is called and we're still waiting for one of our bound data
+  // collection functions to finish
+  uint16_t collectingLoops = 0;
+  
+  // Number of times loop is called and we've finished collecting data but the timeout
+  // for next heartbeat has not yet expired
+  uint16_t idleLoops = 0;
+  
   void sendHeartbeat() {
+    
       push16(idleLoops);
+      push16(collectingLoops);
       push(HEARTBEAT_MESSAGE);
       
       byte heartbeatSize = heartbeatStackTop + 1; 
@@ -105,6 +114,7 @@ namespace reflectaHeartbeat
   void loop() {
     
     if (!finished) {
+      collectingLoops++;
       finished = true;
       for (int i = 0; i < functionsTop; i++) {
         if (!functionComplete[i]) {
@@ -115,17 +125,24 @@ namespace reflectaHeartbeat
     }
     
     if (finished) {
+      
       unsigned long currentTime = micros();
       if (currentTime >= nextHeartbeat) {
+        
         sendHeartbeat();
         
+        // Set the micros delay for when the next heartbeat should be sent
         nextHeartbeat = currentTime + microsBetweenFrames;
+        
+        // Zero out the heartbeat state
+        collectingLoops = 0;
         idleLoops = 0;
         
         for (int i = 0; i < MaxFunctions; i++) { 
           functionComplete[i] = false;
           finished = false;
         }
+        
       } else {
         idleLoops++;
       };
