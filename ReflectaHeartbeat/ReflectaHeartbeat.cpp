@@ -78,13 +78,13 @@ namespace reflectaHeartbeat
     heartbeatFunctions[functionsTop++] = function;
   };
   
-  unsigned long microsBetweenFrames = 100000;
+  uint32_t microsBetweenFrames = 100000;
   
   void setFrameRate(int framesPerSecond) {
     microsBetweenFrames = 1000000 / framesPerSecond;
   };
   
-  uint16_t idleLoops = 0;
+  uint32_t idleLoops = 0;
   void sendHeartbeat() {
       push16(idleLoops);
       push(HEARTBEAT_MESSAGE);
@@ -101,7 +101,7 @@ namespace reflectaHeartbeat
   };
   
   bool finished = false;
-  unsigned long nextHeartbeat = 0;
+  uint32_t nextHeartbeat = 0;
   void loop() {
     
     if (!finished) {

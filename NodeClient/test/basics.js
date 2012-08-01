@@ -93,23 +93,24 @@ describe('Hello', function() {
           
           var hbData = {
             gyroscope: {
-              x: floatView[0],
-              y: floatView[1],
-              z: floatView[2]
+              x: floatView[8],
+              y: floatView[7],
+              z: floatView[6]
             },
             accelerometer: {
-              x: floatView[3],
+              x: floatView[5],
               y: floatView[4],
-              z: floatView[5]
+              z: floatView[3]
             },
             magnometer: {
-              x: floatView[6],
-              y: floatView[7],
-              z: floatView[8]
+              x: floatView[2],
+              y: floatView[1],
+              z: floatView[0]
             }
           };
               
           console.log(heartbeat.freeCycles + " : " + util.inspect(hbData));
+
         });
         
         setTimeout(function() { reflecta.close(done); }, 1700);
