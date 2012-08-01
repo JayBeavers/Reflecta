@@ -1,4 +1,3 @@
-#define TWI_FREQ 400000L
 #include <Wire.h>
 #include <L3G.h>
 #include <LSM303.h>
@@ -12,7 +11,6 @@ LSM303 compass;
 void setup()
 { 
   I2C_Init();
-  Accel_Init();
   Compass_Init();
   Gyro_Init();
   
@@ -68,16 +66,17 @@ void Gyro_Init()
   gyro.writeReg(L3G_CTRL_REG1, 0xCF); // normal power mode, all axes enabled, 760 Hz
 }
 
-void Accel_Init()
-{
-  compass.init();
-  compass.writeAccReg(LSM303_CTRL_REG1_A, 0x77); // normal power mode, all axes enabled, 400 Hz
-}
-
 void Compass_Init()
 {
-  compass.writeMagReg(LSM303_CRA_REG_M, 0x10); // 1C == 220 hz, 10 == 15 hz
-  compass.writeMagReg(LSM303_CRB_REG_M, 0x20); // Lowest gain
-  compass.writeMagReg(LSM303_MR_REG_M, 0x00); // continuous conversion mode
+  compass.init(LSM303DLHC_DEVICE);
+  compass.enableDefault();
+  compass.writeAccReg(LSM303_CTRL_REG1_A, 0x27); // Bump accelerometer from 50 hz to 400 hz
+  
+  // Lowest possible gain value that doesn't overflow and return -4096
+  compass.setMagGain(LSM303::magGain_40);
+  
+  // Calibration values, use Calibrate example program to get the values for your compass.
+  compass.m_min.x = 1821; compass.m_min.y = -1770; compass.m_min.z = 904;
+  compass.m_max.x = 2030; compass.m_max.y = -1396; compass.m_max.z = 1161;
 }
 
