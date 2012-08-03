@@ -1,8 +1,10 @@
 #include <Wire.h>
+#include <Servo.h>
 #include <L3G.h>
 #include <LSM303.h>
 #include <ReflectaFramesSerial.h>
 #include <ReflectaFunctions.h>
+#include <ReflectaArduinoCore.h>
 #include <ReflectaHeartbeat.h>
 
 L3G gyro;
@@ -16,6 +18,7 @@ void setup()
   
   reflectaFrames::setup(9600);
   reflectaFunctions::setup();
+  reflectaArduinoCore::setup();
   
   reflectaHeartbeat::setFrameRate(1);
   
