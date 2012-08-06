@@ -14,6 +14,7 @@ void setup()
   reflectaFrames::setup(9600);
   reflectaFunctions::setup();
   reflectaArduinoCore::setup();
+  reflectaHeartbeat::setup();
 }
 
 void loop()

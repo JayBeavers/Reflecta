@@ -19,8 +19,10 @@ void setup()
   reflectaFrames::setup(9600);
   reflectaFunctions::setup();
   reflectaArduinoCore::setup();
+  reflectaHeartbeat::setup();
   
-  reflectaHeartbeat::setFrameRate(1);
+  reflectaFunctions::push16(1);
+  reflectaHeartbeat::setFrameRate();
   
   reflectaHeartbeat::bind(readGyroscope);
   reflectaHeartbeat::bind(readAccelerometer);
@@ -82,4 +84,3 @@ void Compass_Init()
   compass.m_min.x = 1821; compass.m_min.y = -1770; compass.m_min.z = 904;
   compass.m_max.x = 2030; compass.m_max.y = -1396; compass.m_max.z = 1161;
 }
-

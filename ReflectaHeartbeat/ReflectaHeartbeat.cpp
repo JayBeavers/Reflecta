@@ -80,7 +80,8 @@ namespace reflectaHeartbeat
   
   uint32_t microsBetweenFrames = 100000;
   
-  void setFrameRate(int framesPerSecond) {
+  void setFrameRate() {
+    int16_t framesPerSecond = reflectaFunctions::pop16();
     microsBetweenFrames = 1000000 / framesPerSecond;
   };
   
@@ -148,4 +149,8 @@ namespace reflectaHeartbeat
       };
     }
   };
+  
+  void setup() {
+    reflectaFunctions::bind("HART1", setFrameRate);
+  }
 };

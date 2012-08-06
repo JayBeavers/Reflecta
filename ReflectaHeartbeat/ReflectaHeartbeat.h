@@ -22,6 +22,9 @@ namespace reflectaHeartbeat
   //  Counts number of 'idle loops' when hb has been sent and fps timer hasn't expired
   //  Pushes 'idle loops' to the top of the stack
   
+  // Binds the setFrameRate function to QueryInterface
+  void setup();
+  
   // Gathers the HB data and sends it out when ready
   void loop();
   
@@ -36,7 +39,7 @@ namespace reflectaHeartbeat
   // Bind a function to an interfaceId so it can be called by Reflecta Functions.  The assigned frame id is returned.
   void bind(bool (*function)());
   
-  void setFrameRate(int framesPerSecond);
+  void setFrameRate();
   
 };
 
