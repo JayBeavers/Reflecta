@@ -1,11 +1,11 @@
 {
-  "name": "trendyCompass",
+  "name": "ledButton",
   "version": "0.0.1",
   "dependencies": {
     "serialport": "*",
     "socket.io": "*"
     },
-  "description": "Node.js client for the Reflecta BasicIMU firmware for Arduino",
+  "description": "simple example demonstrating (browser button -> socket.io -> node.js -> reflecta -> arduino led)",
   "main": "server",
   "engine": "node >= 0.8.1",
   "repository": {
