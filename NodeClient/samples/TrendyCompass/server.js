@@ -30,7 +30,7 @@ io.sockets.on('connection', function (socket) {
 
 var util = require('util');
 var Reflecta = require('../../reflecta.js');
-var reflecta = new Reflecta("COM10", function(err) {
+var reflecta = new Reflecta("COM4", function(err) {
   if (err) {
     reflecta.close(function() { done(err); });
     return;

@@ -4,7 +4,7 @@ var util = require('util');
 function Reflecta(path, options, callback) {
   
   if (!(this instanceof Reflecta)) {
-    return new Reflecta();
+    return new Reflecta(path, options, callback);
   }
 
   var self = this;

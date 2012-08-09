@@ -6,7 +6,7 @@ describe('Hello', function() {
     it('Reflecta', function(done) {
         
       var Reflecta = require('../reflecta.js');
-      var reflecta = new Reflecta("COM10", function(err) {
+      var reflecta = new Reflecta("COM4", function(err) {
         if (err) {
           reflecta.close(function() { done(err); });
           return;
@@ -33,7 +33,7 @@ describe('Hello', function() {
     it('Blinky', function(done) {
 
         var Reflecta = require('../reflecta.js');
-        var reflecta = new Reflecta("COM10", function(err) {
+        var reflecta = new Reflecta("COM4", function(err) {
           if (err) {
             reflecta.close(function() { done(err); });
             return;
@@ -53,7 +53,7 @@ describe('Hello', function() {
     it('BasicHeartbeat', function(done) {
 
       var Reflecta = require('../reflecta.js');
-      var reflecta = new Reflecta("COM10", function(err) {
+      var reflecta = new Reflecta("COM4", function(err) {
         if (err) {
           reflecta.close(function() { done(err); });
           return;
@@ -73,7 +73,7 @@ describe('Hello', function() {
     it('HeartbeatIMU', function(done) {
 
       var Reflecta = require('../reflecta.js');
-      var reflecta = new Reflecta("COM10", function(err) {
+      var reflecta = new Reflecta("COM4", function(err) {
         if (err) {
           reflecta.close(function() { done(err); });
           return;

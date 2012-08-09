@@ -1,5 +1,5 @@
 // Local settings, change to suit
-var portName = 'COM4'; // See node-serialport for documentation
+var portName = 'COM4'; // See node-serialport for documentation on how to change this for your serial port in Linux, OSX, or Windows
 var httpPort = 8088;
 var ledPin = 11;
 
@@ -41,7 +41,7 @@ var reflecta = new Reflecta(portName, function(err) {
     var ledState = 0;    
     socket.on('toggle', function() {
       console.log('Received (toggle)')
-      ledState ^= 1;
+      ledState ^= 1; // XOR, this toggles ledState betwen values 0 (e.g. off) and 1 (e.g. on)
       reflecta.ardu1.gpio.digitalWrite(ledPin, ledState);
     });
 

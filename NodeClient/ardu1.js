@@ -5,7 +5,7 @@ module.exports = function(reflecta, interfaceStart) {
     gpio : {
 
       pinMode : function(pin, mode) {
-        reflecta.sendFrame(interfaceStart);
+        reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 2, pin, mode, interfaceStart] );
       },
 
       digitalRead : function(pin, callback) {
