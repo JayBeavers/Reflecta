@@ -36,17 +36,18 @@ function Reflecta(path, options, callback) {
   };
   
   var FrameTypes = {
-    Heartbeat   : 0x7A,
-    Response    : 0x7D,
-    Message     : 0x7E,
+    Heartbeat   : 0x7B,
+    Response    : 0x7C,
+    Message     : 0x7D,
+    Warning     : 0x7E,
     Error       : 0x7F
   };
   
   var ErrorCodes = {
     0x00 : 'FRAMES_WARNING_OUT_OF_SEQUENCE',
-    0x01 : 'FRAMES_ERROR_UNEXPECTED_ESCAPE',
-    0x02 : 'FRAMES_ERROR_CRC_MISMATCH',
-    0x03 : 'FRAMES_ERROR_UNEXPECTED_END',
+    0x01 : 'FRAMES_WARNING_UNEXPECTED_ESCAPE',
+    0x02 : 'FRAMES_WARNING_CRC_MISMATCH',
+    0x03 : 'FRAMES_WARNING_UNEXPECTED_END',
     0x04 : 'FRAMES_ERROR_BUFFER_OVERFLOW',
     0x05 : 'FUNCTIONS_ERROR_FRAME_TOO_SMALL',
     0x06 : 'FUNCTIONS_ERROR_FUNCTION_CONFLICT',
@@ -56,11 +57,11 @@ function Reflecta(path, options, callback) {
     0x0A : 'FUNCTIONS_ERROR_STACK_UNDERFLOW'
   };
   
-  var FunctionIds = {
+  this.FunctionIds = {
     pushArray           : [ 0x00 ],
     queryInterface      : [ 0x01 ],
-    sendResponseCount   : [ 0x7B ],
-    sendResponse        : [ 0x7C ]
+    sendResponse        : [ 0x02 ],
+    sendResponseCount   : [ 0x03 ]
   };
   
   var writeArray = []; // Space to compose an outgoing frame of data
@@ -204,6 +205,12 @@ function Reflecta(path, options, callback) {
                 self.emit('error', 'Remote: ' + frameBuffer[1] + ' : ' + ErrorCodes[frameBuffer[1]]);
                 
                 break;
+
+              case FrameTypes.Warning:
+
+                self.emit('warning', 'Remote: ' + frameBuffer[1] + ' : ' + ErrorCodes[frameBuffer[1]]);
+                
+                break;
     
               case FrameTypes.Message:
                 
@@ -343,7 +350,8 @@ function Reflecta(path, options, callback) {
   this.sendResponse = function(callback) {
     
     var callSequence = sendFrame(FunctionIds.sendResponse);
-        
+    
+    // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
       if (response.sequence == callSequence) {
         callback(null, response.message);
@@ -352,47 +360,8 @@ function Reflecta(path, options, callback) {
     });
   };
   
-  var interfaceStart = 2;
-  this.ardu1 = {
-    
-    gpio : {
-      pinMode : function(pin, mode) { console.log(interfaceStart); sendFrame(interfaceStart); },
-
-      digitalRead : function(pin, callback) {
-        // This smells like we need a 'sendFrameWithResponseCallback'
-        self.sendFrame( [FunctionIds.pushArray, 1, pin, interfaceStart + 1] );
-        self.sendResponse(callback);
-      },
-
-      digitalWrite : function(pin, value) {
-        self.sendFrame( [FunctionIds.pushArray, 2, pin, value, interfaceStart + 2] );
-      },
-
-      analogRead : function() { sendFrame(interfaceStart + 3); },
-      analogWrite : function() { sendFrame(interfaceStart + 4); },
-      pulseIn : function() { sendFrame(interfaceStart + 17); }
-    },
-    
-    wire : {
-      beginMaster : function() { sendFrame(interfaceStart + 5); },
-      requestFrom : function() { sendFrame(interfaceStart + 6); },
-      requestFromStart : function() { sendFrame(interfaceStart + 7); },
-      available : function() { sendFrame(interfaceStart + 8); },
-      read : function() { sendFrame(interfaceStart + 9); },
-      beginTransmission : function() { sendFrame(interfaceStart + 10); },
-      write : function() { sendFrame(interfaceStart + 11); },
-      endTransmission : function() { sendFrame(interfaceStart + 12); }
-    },
-    
-    servo : {
-      attach : function() { sendFrame(interfaceStart + 13); },
-      detach : function() { sendFrame(interfaceStart + 14); },
-      write : function() { sendFrame(interfaceStart + 15); },
-      writeMicroseconds : function() { sendFrame(interfaceStart + 16); }
-    }
-  };
-  
-}
+  this.ardu1 = require('./ardu1')(self, 4);
+};
 
 util.inherits(Reflecta, events.EventEmitter);
 

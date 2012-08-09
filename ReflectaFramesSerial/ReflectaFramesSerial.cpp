@@ -103,6 +103,15 @@ namespace reflectaFrames
     sendFrame(buffer, 2);
   }
   
+  // Send a two byte frame notifying caller that something slightly improper occured in the communications protocol
+  void sendWarning(byte eventId)
+  {
+    byte buffer[2];
+    buffer[0] = FRAMES_WARNING;
+    buffer[1] = eventId;
+    sendFrame(buffer, 2);
+  }
+  
   void sendMessage(String message)
   {
     byte bufferLength = message.length() + 3;
@@ -131,7 +140,7 @@ namespace reflectaFrames
           b = ESCAPE;
           break;
         default:
-          sendError(FRAMES_ERROR_UNEXPECTED_ESCAPE);
+          sendWarning(FRAMES_WARNING_UNEXPECTED_ESCAPE);
           state = WAITING_FOR_RECOVERY;
           break;
       }
@@ -157,7 +166,7 @@ namespace reflectaFrames
             state = PROCESS_PAYLOAD;
             break;
           default:
-            sendError(FRAMES_ERROR_UNEXPECTED_END);
+            sendWarning(FRAMES_WARNING_UNEXPECTED_END);
             state = WAITING_FOR_RECOVERY;
             break;
         }
@@ -232,7 +241,7 @@ namespace reflectaFrames
             {
               sendMessage("Expected " + String(nextSequence - 1, HEX) + " received " + String(sequence, HEX) );
               nextSequence = sequence + 1;
-              sendError(FRAMES_WARNING_OUT_OF_SEQUENCE);
+              sendWarning(FRAMES_WARNING_OUT_OF_SEQUENCE);
             }
             
             frameBufferLength = frameBufferAllocationCallback(&frameBuffer);
@@ -267,7 +276,7 @@ namespace reflectaFrames
             }
             else
             {
-              sendError(FRAMES_ERROR_CRC_MISMATCH);
+              sendWarning(FRAMES_WARNING_CRC_MISMATCH);
               state = WAITING_FOR_RECOVERY;
               readChecksum = 0;
             }

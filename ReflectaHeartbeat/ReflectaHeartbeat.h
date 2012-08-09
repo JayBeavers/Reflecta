@@ -9,7 +9,7 @@
 #ifndef REFLECTA_HEARTBEAT_H
 #define REFLECTA_HEARTBEAT_H
 
-#define HEARTBEAT_MESSAGE 0x7A
+#define HEARTBEAT_MESSAGE 0x7B
 
 namespace reflectaHeartbeat
 {

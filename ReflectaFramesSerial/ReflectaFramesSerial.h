@@ -8,14 +8,15 @@ ReflectaFramesSerial.h - Library for sending frames of information from a Microc
 #define REFLECTA_FRAMES_H
 
 // An error occurred when parsing a data packet into the Reflecta protocol 
-#define FRAMES_MESSAGE                  0x7E
+#define FRAMES_MESSAGE                  0x7D
+#define FRAMES_WARNING                  0x7E
 #define FRAMES_ERROR                    0x7F
 
 // Types of parsing errors detected by Reflecta Frames
 #define FRAMES_WARNING_OUT_OF_SEQUENCE  0x00
-#define FRAMES_ERROR_UNEXPECTED_ESCAPE  0x01
-#define FRAMES_ERROR_CRC_MISMATCH       0x02
-#define FRAMES_ERROR_UNEXPECTED_END     0x03
+#define FRAMES_WARNING_UNEXPECTED_ESCAPE  0x01
+#define FRAMES_WARNING_CRC_MISMATCH       0x02
+#define FRAMES_WARNING_UNEXPECTED_END     0x03
 #define FRAMES_ERROR_BUFFER_OVERFLOW    0x04
 
 namespace reflectaFrames
@@ -35,6 +36,9 @@ namespace reflectaFrames
   
   // Send a two byte frame notifying caller that something improper occured
   void sendError(byte eventId);
+  
+  // Send a two byte frame notifying caller that something slightly improper occured
+  void sendWarning(byte eventId);
   
   // Send a string message
   void sendMessage(String message);

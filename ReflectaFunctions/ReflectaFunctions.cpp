@@ -8,7 +8,7 @@ ReflectaFunctions.cpp - Library for binding functions to a virtual function tabl
 namespace reflectaFunctions
 {
   // Index of next unused function in the function table (vtable)
-  byte openFunctionIndex = 2;
+  byte openFunctionIndex = 4;
 
   // Function table that relates function id -> function
   void (*vtable[255])();
@@ -261,9 +261,8 @@ namespace reflectaFunctions
     // Do this manually as we don't want to set a matching Interface
     vtable[FUNCTIONS_PUSHARRAY] = pushArray;
     vtable[FUNCTIONS_QUERYINTERFACE] = queryInterface;
-
-    vtable[FUNCTIONS_SENDRESPONSECOUNT] = sendResponseCount;
     vtable[FUNCTIONS_SENDRESPONSE] = sendResponse;
+    vtable[FUNCTIONS_SENDRESPONSECOUNT] = sendResponseCount;
 
     // TODO: block out FUNCTIONS_PUSHARRAY, FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
 

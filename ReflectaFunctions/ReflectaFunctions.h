@@ -18,9 +18,9 @@
 // Frame Ids used by Reflecta Functions.  These are reserved values for the first byte of the frame data.
 #define FUNCTIONS_PUSHARRAY                 0x00
 #define FUNCTIONS_QUERYINTERFACE            0x01
-#define FUNCTIONS_SENDRESPONSECOUNT         0x7B
-#define FUNCTIONS_SENDRESPONSE              0x7C
-#define FUNCTIONS_RESPONSE                  0x7D
+#define FUNCTIONS_SENDRESPONSE              0x02
+#define FUNCTIONS_SENDRESPONSECOUNT         0x03
+#define FUNCTIONS_RESPONSE                  0x7C
 
 namespace reflectaFunctions
 {
