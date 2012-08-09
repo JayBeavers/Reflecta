@@ -2,7 +2,8 @@
   "name": "trendyCompass",
   "version": "0.0.1",
   "dependencies": {
-    "serialport": "*"
+    "serialport": "*",
+    "socket.io": "*"
     },
   "description": "Node.js client for the Reflecta BasicIMU firmware for Arduino",
   "main": "server",
