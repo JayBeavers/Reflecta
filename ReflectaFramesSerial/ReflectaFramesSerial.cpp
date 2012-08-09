@@ -85,7 +85,11 @@ namespace reflectaFrames
     }
     writeEscaped(writeChecksum);
     Serial.write(END);
+
+    // On Teensies, use the extended send_now to perform an undelayed send
+    #ifdef USBserial_h_
     Serial.send_now();
+    #endif
     
     return writeSequence++;
   }
