@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="utf-8" />
+        <title>RobotGRRL's Arduino Led Toggle Button</title>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>       
+            var socket = io.connect('http://localhost');
+        </script>
+    </head>
+    <body>
+        <div>
+            <button onclick="socket.emit('toggle')">Led Toggle</button>
+        </div>
+    </body>
+</html>
