@@ -15,9 +15,15 @@ function Reflecta(path, options, callback) {
   }
   
   var serialPort = new (require("serialport").SerialPort)(path, options);
-  if (callback) {
-    serialPort.once('open', callback);
-  }
+
+  // Query our interfaces and attach our interface libraries
+  serialPort.once('open', function() {
+    self.queryInterface(function(interfaces) {
+      if (callback) {
+        callback();
+      }
+    });
+  });
   
   // SLIP (http://www.ietf.org/rfc/rfc1055.txt) protocol special character definitions
   // Used to find end of frame when using a streaming communications protocol
@@ -112,7 +118,7 @@ function Reflecta(path, options, callback) {
           case EscapeCharacters.ESCAPED_ESCAPE:
             return EscapeCharacters.ESCAPE;
           default:
-            self.emit('error', 'Local: frame corrupt, unexpected escape');
+            self.emit('warning', 'Local: frame corrupt, unexpected escape');
             readState = ReadState.WaitingForEnd;
             return null;
         }
@@ -133,7 +139,7 @@ function Reflecta(path, options, callback) {
             readState = ReadState.ProcessingFrame;
             break;
           default:
-            self.emit('error', 'Local: frame corrupt, unexpected end');
+            self.emit('warning', 'Local: frame corrupt, unexpected end');
             readState = ReadState.WaitingForEnd;
             break;
         }
@@ -193,7 +199,7 @@ function Reflecta(path, options, callback) {
           // zero expected because when CRC of data is XORed with Checksum byte it should equal zero
           if (readChecksum != 0) {
             
-            self.emit('error', 'Local: frame corrupt, crc mismatch', data, readChecksum);
+            self.emit('warning', 'Local: frame corrupt, crc mismatch', data, readChecksum);
             
           } else { 
             
@@ -224,7 +230,7 @@ function Reflecta(path, options, callback) {
                 var responseToSequence = frameBuffer[1];
                 var length = frameBuffer[2];
                 // Broken, assumes the response is a text message!!!
-                var message = new Buffer(frameBuffer).toString('utf8', 3, length + 3);
+                var message = new Buffer(frameBuffer).slice(3, length + 3);
                 self.emit('response', { sequence: responseToSequence, message: message });
                 
                 break;
@@ -323,21 +329,34 @@ function Reflecta(path, options, callback) {
   // Query the interfaces (e.g. function groups) bound on the Arduino
   this.queryInterface = function(callback) {
     
-    var callSequence = sendFrame(FunctionIds.queryInterface);
+    var callSequence = self.sendFrame(self.FunctionIds.queryInterface);
     
+    // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
+
       if (response.sequence == callSequence) {
-        callback(null, response.message);
-      }
-      
+
+          self.interfaces = {};
+
+          for (var interfaceIndex = 0; interfaceIndex < response.message.length / 6; interfaceIndex++) {
+            var interfaceOffset = response.message[interfaceIndex * 6];
+            var interfaceId = response.message.slice(interfaceIndex * 6 + 1, interfaceIndex * 6 + 6).toString();
+
+            self[interfaceId] = require('./interfaces/' + interfaceId)(self, interfaceOffset);
+            self.interfaces[interfaceId] = self[interfaceId];
+          }
+
+          callback(self.interfaces);
+        }
     });
   };
   
   // Request a response with n bytes from the stack, where n == the first byte on the stack
   this.sendResponseCount = function(count, callback) {
     
-    var callSequence = sendFrame(FunctionIds.sendResponseCount, count);
+    var callSequence = self.sendFrame(FunctionIds.sendResponseCount, count);
     
+    // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
       if (response.sequence == callSequence) {
         callback(null, response.message);
@@ -349,7 +368,7 @@ function Reflecta(path, options, callback) {
   // Request a response with 1 byte from the stack
   this.sendResponse = function(callback) {
     
-    var callSequence = sendFrame(FunctionIds.sendResponse);
+    var callSequence = self.sendFrame(FunctionIds.sendResponse);
     
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
@@ -359,8 +378,6 @@ function Reflecta(path, options, callback) {
 
     });
   };
-  
-  this.ardu1 = require('./ardu1')(self, 4);
 };
 
 util.inherits(Reflecta, events.EventEmitter);
