@@ -173,7 +173,7 @@ namespace reflectaFunctions
       int8_t value = pop();
       frame[3 + i] = value;
     }
-    
+
     reflectaFrames::sendFrame(frame, size);
   }
 
@@ -248,7 +248,8 @@ namespace reflectaFunctions
       push(interfaceStart[index]);
     }
     
-    push((interfaceIdLength + 1) * indexOfInterfaces); // each interface contributes 1 payload byte for startIndex and 'n' bytes for the interfaceId string
+    // each interface contributes 1 payload byte for startIndex and 'n' bytes for the interfaceId string
+    push((interfaceIdLength + 1) * indexOfInterfaces);
     sendResponseCount();
   }
 
