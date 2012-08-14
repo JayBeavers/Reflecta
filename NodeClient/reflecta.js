@@ -1,3 +1,4 @@
+var fs = require('fs');
 var events = require('events');
 var util = require('util');
 
@@ -229,7 +230,6 @@ function Reflecta(path, options, callback) {
     
                 var responseToSequence = frameBuffer[1];
                 var length = frameBuffer[2];
-                // Broken, assumes the response is a text message!!!
                 var message = new Buffer(frameBuffer).slice(3, length + 3);
                 self.emit('response', { sequence: responseToSequence, message: message });
                 
@@ -341,9 +341,12 @@ function Reflecta(path, options, callback) {
           for (var interfaceIndex = 0; interfaceIndex < response.message.length / 6; interfaceIndex++) {
             var interfaceOffset = response.message[interfaceIndex * 6];
             var interfaceId = response.message.slice(interfaceIndex * 6 + 1, interfaceIndex * 6 + 6).toString();
+            var interfaceFilePath = './interfaces/' + interfaceId;
 
-            self[interfaceId] = require('./interfaces/' + interfaceId)(self, interfaceOffset);
-            self.interfaces[interfaceId] = self[interfaceId];
+            if (fs.exists(interfaceFilePath)) {
+              self[interfaceId] = require(interfaceFilePath)(self, interfaceOffset);
+              self.interfaces[interfaceId] = self[interfaceId];
+            }
           }
 
           callback(self.interfaces);
@@ -354,7 +357,7 @@ function Reflecta(path, options, callback) {
   // Request a response with n bytes from the stack, where n == the first byte on the stack
   this.sendResponseCount = function(count, callback) {
     
-    var callSequence = self.sendFrame(FunctionIds.sendResponseCount, count);
+    var callSequence = self.sendFrame(self.FunctionIds.sendResponseCount, count);
     
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
