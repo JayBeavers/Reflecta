@@ -13,14 +13,21 @@ module.exports = function(reflecta, interfaceStart) {
     },
 
     drive : function(power0, power1) {
-      reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 2, power0, power1, interfaceStart + 2] );
+      var buffer = new Buffer(7);
+      buffer[0] = reflecta.FunctionIds.pushArray;
+      buffer[1] = 4;
+      buffer[6] = interfaceStart + 2;
+      buffer.writeInt16BE(power0, 2);
+      buffer.writeInt16BE(power1, 4);
+
+      reflecta.sendFrame(buffer);
     },
 
     readCurrent : function(callback) {
       reflecta.sendFrame(interfaceStart + 3);
       reflecta.sendResponseCount(4, function(buffer) { 
-        var currentMotor0 = buffer[0] < 8 + buffer[1];
-        var currentMotor1 = buffer[2] < 8 + buffer[3];
+        var currentMotor0 = buffer.readInt16BE(0);
+        var currentMotor1 = buffer.readInt16BE(2);
         callback(currentMotor0, currentMotor1);
       });
     }
