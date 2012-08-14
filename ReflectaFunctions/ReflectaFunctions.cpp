@@ -123,8 +123,8 @@ namespace reflectaFunctions
     }
     else
     {
-      parameterStack[++parameterStackTop] = (w >> 8);
-      parameterStack[++parameterStackTop] = (w & 0xFF);
+      parameterStackTop += 2;
+      *((int16_t*)(parameterStack + parameterStackTop - 1)) = w;
     }
   }
 
@@ -150,7 +150,8 @@ namespace reflectaFunctions
     }
     else
     {
-      return (parameterStack[parameterStackTop--] + (parameterStack[parameterStackTop--] << 8));
+      parameterStackTop -= 2;
+      return *(int16_t*)(parameterStack + parameterStackTop + 1);
     }
   }
   
