@@ -2,6 +2,10 @@
 
 Reflecta is a communications library for Arduino that integrates Arduino with a host computer by enabling remote calling of Arduino functions like digitalWrite or analogRead, writing Arduino programs that send & receive frames of byte data or string messages, and receiving high speed (400+ frames per second) 'heartbeats' of sensor data.  This enables you to use Arduino libraries to talk to a wide variety of hardware and run time sensitive operations like PWM or Pulse In (e.g. sonars) / Pulse Out (e.g. servos) while leveraging the high speeds of x86 and ARM CPUs to perform heavy lifting like sensor fusion and data filtering.
 
+## Getting Started ##
+
+To install, download the contents of the repository as a zip file and decompress into your libraries folder, either where you have the Arduino IDE installed or in your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
+
 ## Why? ##
 
 Arduino easily connects to a PC over USB as a Virtual COM port but turning this serial data stream into a reliable communications channel takes considerable work.  At first I used Firmata -- a built-in library for GPIO remoting and Wire bridging.  However I found some limitations with this approach:
@@ -55,17 +59,13 @@ This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per
 
 Reflecta is made of four small libraries that work together:
 
-- ReflectaFramesSerial -- a framing protocol that packages byte[] data into individual frames over a data stream and adds support for tracking Sequence, detecting Checksum errors due to data corruption, and detecting the end of the frame. Initial implementation (ReflectaFramesSerial) uses the Arduino Serial library for communications, a future Raw Hid implementation is planned.
+- [ReflectaFramesSerial](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaFramesSerial) -- a framing protocol that packages byte[] data into individual frames over a data stream and adds support for tracking Sequence, detecting Checksum errors due to data corruption, and detecting the end of the frame. Initial implementation (ReflectaFramesSerial) uses the Arduino Serial library for communications, a future Raw Hid implementation is planned.
 
-- ReflectaFunctions -- a remote function calling protocol that builds on top of ReflectaFrames.  Arduino functions are 'registered' for rpc by calling bind(interface, function pointer).  ReflectaFunctions uses a stack-based approach to calling functions, meaning first you push(...) your parameters on your stack, then you invoke your functions, and your functions pop(...) their parameters off the stack and push(...) their return values back on.  ReflectaFunctions exposes a QueryInterface function you use to determine which interfaces (e.g. function groups) are present in the firmware on the Arduino.
+- [ReflectaFunctions](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaFunctions) -- a remote function calling protocol that builds on top of ReflectaFrames.  Arduino functions are 'registered' for rpc by calling bind(interface, function pointer).  ReflectaFunctions uses a stack-based approach to calling functions, meaning first you push(...) your parameters on your stack, then you invoke your functions, and your functions pop(...) their parameters off the stack and push(...) their return values back on.  ReflectaFunctions exposes a QueryInterface function you use to determine which interfaces (e.g. function groups) are present in the firmware on the Arduino.
 
-- ReflectaArduinoCore -- a binding of the Arduino core library functions such as pinMode, digitalRead, analogWrite to the 'ARDU1' interface.
+- [ReflectaArduinoCore](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaArduinoCore) -- a binding of the Arduino core library functions such as pinMode, digitalRead, analogWrite to the 'ARDU1' interface.
 
-- ReflectaHeartbeat -- an Arduino-side library for reading digital and analog pins very efficienctly, calling functions and gathering their results, and sending the results at a fixed frequency to the host PC.
-
-## Getting Started ##
-
-To install, download the contents of the repository as a zip file and decompress into your libraries folder, either where you have the Arduino IDE installed or in your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
+- [ReflectaHeartbeat](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaHeartbeat) -- an Arduino-side library for reading digital and analog pins very efficienctly, calling functions and gathering their results, and sending the results at a fixed frequency to the host PC.
 
 ## Examples ##
 
