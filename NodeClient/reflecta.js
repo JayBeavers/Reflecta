@@ -247,7 +247,7 @@ function Reflecta(path, options, callback) {
               default:
                 
                 // TODO: consider expressing this as multiple params?
-                self.emit('frame', { sequence: frameSequence, data: frameBuffer, frame: data });
+                self.emit('frame', { sequence: frameSequence, data: new Buffer(frameBuffer) });
                   
                 break;
                 
@@ -354,7 +354,7 @@ function Reflecta(path, options, callback) {
   // Request a response with n bytes from the stack, where n == the first byte on the stack
   this.sendResponseCount = function(count, callback) {
     
-    var callSequence = self.sendFrame(FunctionIds.sendResponseCount, count);
+    var callSequence = self.sendFrame( [self.FunctionIds.pushArray, 1, count, self.FunctionIds.sendResponseCount] );
     
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
@@ -368,7 +368,7 @@ function Reflecta(path, options, callback) {
   // Request a response with 1 byte from the stack
   this.sendResponse = function(callback) {
     
-    var callSequence = self.sendFrame(FunctionIds.sendResponse);
+    var callSequence = self.sendFrame(self.FunctionIds.sendResponse);
     
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
