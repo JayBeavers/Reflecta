@@ -4,31 +4,31 @@
 module.exports = function(reflecta, interfaceStart) {
   return {
 
-    AnimationCommand : function(value) {
+    Animation : function(value) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart] );
     },
 
-    FireCommand : function() {
+    Fire : function() {
       reflecta.sendFrame( [value,interfaceStart + 1] );
     },
 
-    LightCommand : function(value) {
+    Light : function(value) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart + 2] );
     },
 
-    PanCommand : function(value) {
+    Pan : function(value) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart + 3] );
     },
 
-    TiltCommand : function(value) {
+    Tilt : function(value) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart + 4] );
     },
 
-    CompressorCommand : function(value) {
+    Compressor : function(value) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart + 5] );
     },
 
-    ValveCommand : function(value) {
+    Valve : function(value) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart + 6] );
     }
   }
