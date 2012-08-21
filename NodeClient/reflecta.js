@@ -1,11 +1,12 @@
 var fs = require('fs');
 var events = require('events');
 var util = require('util');
+var path = require('path');
 
-function Reflecta(path, options, callback) {
+function Reflecta(port, options, callback) {
   
   if (!(this instanceof Reflecta)) {
-    return new Reflecta(path, options, callback);
+    return new Reflecta(port, options, callback);
   }
 
   var self = this;
@@ -15,7 +16,7 @@ function Reflecta(path, options, callback) {
     options = undefined;  // no option passed
   }
   
-  var serialPort = new (require("serialport").SerialPort)(path, options);
+  var serialPort = new (require("serialport").SerialPort)(port, options);
 
   // Query our interfaces and attach our interface libraries
   serialPort.once('open', function() {
@@ -341,11 +342,13 @@ function Reflecta(path, options, callback) {
           for (var interfaceIndex = 0; interfaceIndex < response.message.length / 6; interfaceIndex++) {
             var interfaceOffset = response.message[interfaceIndex * 6];
             var interfaceId = response.message.slice(interfaceIndex * 6 + 1, interfaceIndex * 6 + 6).toString();
-            var interfaceFilePath = './interfaces/' + interfaceId;
+            var interfaceFilePath = path.resolve(path.dirname(module.filename), 'interfaces/' + interfaceId + '.js');
 
-            if (fs.exists(interfaceFilePath)) {
+            if (fs.existsSync(interfaceFilePath)) {
               self[interfaceId] = require(interfaceFilePath)(self, interfaceOffset);
               self.interfaces[interfaceId] = self[interfaceId];
+            } else {
+              self.emit('warning', 'QueryInterface: local interface definition not found for ' + interfaceId + ' at ' + interfaceFilePath);
             }
           }
 
