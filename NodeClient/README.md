@@ -5,8 +5,13 @@ Install the module with: `npm install reflecta`
 
 ```javascript
 var Reflecta = require('./reflecta');
-var reflecta = new Reflecta("COM10", function(err) {
-    reflecta.on('response', function(response) { console.log(response.sequence + ' : ' + response.message); });
+var reflecta = new Reflecta("COM10");
+
+reflecta.on('ready', function() {
+    reflecta.on('response', function(response) {
+		console.log(response.sequence + ' : ' + response.message);
+	});
+
     reflecta.sendFrame([1]);
 });
 ```
@@ -24,6 +29,12 @@ Note:  Be sure that portOpen event has fired before calling sendFrame.  Will be 
 simplify in future releases
 
 ### Events
+
+```javascript
+reflecta.on('ready', function() ... );
+```
+
+The connection has been opened and reflecta is ready to be used to communicate with the Arduino.
 
 ```javascript
 reflecta.on('error', function(err) ... );
