@@ -1,10 +1,8 @@
-var app = require('http').createServer(handler)
-  , io = require('socket.io').listen(app)
-  , fs = require('fs')
+var app = require('http').createServer(),
+  io = require('socket.io').listen(app),
+  fs = require('fs');
 
-app.listen(8088);
-
-function handler (req, res) {
+app.on('request', function (req, res) {
   fs.readFile(__dirname + '/index.html',
   function (err, data) {
     if (err) {
@@ -15,7 +13,9 @@ function handler (req, res) {
     res.writeHead(200);
     res.end(data);
   });
-}
+});
+
+app.listen(8088);
 
 var direction = 0;
 var connected = null;
@@ -30,39 +30,32 @@ io.sockets.on('connection', function (socket) {
 
 var util = require('util');
 var Reflecta = require('../../reflecta.js');
-var reflecta = new Reflecta("COM4", function(err) {
-  if (err) {
-    reflecta.close(function() { done(err); });
-    return;
-  }
+var reflecta = new Reflecta("COM4");
 
-  reflecta.on('error', function(err, frame, checksum) { console.log(err + ' - ' + util.inspect(frame) + ' - ' + checksum); });
-  reflecta.on('portError', function(err) { console.log(err); });
+reflecta.on('error', function(error) { console.log(error); });
+reflecta.on('portError', function(err) { console.log(err); });
   
-  reflecta.on('message', function(message) { console.log(message); });
+reflecta.on('message', function(message) { console.log(message); });
+
+reflecta.on('ready', function() {
+
   reflecta.on('heartbeat', function(heartbeat) {
-    // Break the incoming data into floats
-    var arrayBuffer = new ArrayBuffer(heartbeat.data.length);
-    var byteView = new Uint8Array(arrayBuffer);
-    var floatView = new Float32Array(arrayBuffer);
-    
-    byteView.set(heartbeat.data);
-    
+
     var hbData = {
       gyroscope: {
-        x: floatView[8],
-        y: floatView[7],
-        z: floatView[6]
+        x: heartbeat.data.readFloatBE(32),
+        y: heartbeat.data.readFloatBE(28),
+        z: heartbeat.data.readFloatBE(24)
       },
       accelerometer: {
-        x: floatView[5],
-        y: floatView[4],
-        z: floatView[3]
+        x: heartbeat.data.readFloatBE(20),
+        y: heartbeat.data.readFloatBE(16),
+        z: heartbeat.data.readFloatBE(12)
       },
       magnometer: {
-        x: floatView[2],
-        y: floatView[1],
-        z: floatView[0]
+        x: heartbeat.data.readFloatBE(8),
+        y: heartbeat.data.readFloatBE(4),
+        z: heartbeat.data.readFloatBE(0)
       }
     };
         

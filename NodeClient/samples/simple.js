@@ -4,12 +4,13 @@ var ledPin = 11;
 var util = require('util');
 var Reflecta = require('../reflecta.js');
 
-var reflecta = new Reflecta(port, function(err) {
+var reflecta = new Reflecta(port);
+
+reflecta.on('ready', function() {
 
   if (reflecta.ARDU1) {
     reflecta.ARDU1.gpio.digitalWrite(ledPin, 1);
   }
-
 });
 
 reflecta.on('error', function(error) { console.log("e: " + error); });

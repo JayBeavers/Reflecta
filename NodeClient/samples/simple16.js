@@ -4,10 +4,9 @@ var Reflecta = require('../reflecta.js');
 
 var buffer = new Buffer(5);
 
-var reflecta = new Reflecta(port, function(err) {
+var reflecta = new Reflecta(port);
 
-  reflecta.on('error', function(error) { console.log(error); });
-  reflecta.on('message', function(message) { console.log("m: " + message); });
+reflecta.on('ready', function() {
 
   buffer[0] = 0;
   buffer[1] = 2;
@@ -39,3 +38,6 @@ var reflecta = new Reflecta(port, function(err) {
   });
  });
 });
+
+reflecta.on('error', function(error) { console.log(error); });
+reflecta.on('message', function(message) { console.log("m: " + message); });

@@ -3,27 +3,20 @@ var events = require('events');
 var util = require('util');
 var path = require('path');
 
-function Reflecta(port, options, callback) {
+function Reflecta(port, options) {
   
   if (!(this instanceof Reflecta)) {
-    return new Reflecta(port, options, callback);
+    return new Reflecta(port, options);
   }
 
   var self = this;
-
-  if (!callback || typeof callback !== "function") {
-    callback = options;   // callback must be the second parameter
-    options = undefined;  // no option passed
-  }
   
   var serialPort = new (require("serialport").SerialPort)(port, options);
 
   // Query our interfaces and attach our interface libraries
   serialPort.once('open', function() {
     self.queryInterface(function(interfaces) {
-      if (callback) {
-        callback();
-      }
+      self.emit('ready');
     });
   });
   
