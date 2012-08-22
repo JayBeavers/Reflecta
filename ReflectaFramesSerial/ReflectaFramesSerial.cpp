@@ -94,21 +94,19 @@ namespace reflectaFrames
     return writeSequence++;
   }
   
-  // Send a two byte frame notifying caller that something improper occured in the communications protocol
-  void sendError(byte eventId)
+  void sendError(byte errorCode)
   {
     byte buffer[2];
     buffer[0] = FRAMES_ERROR;
-    buffer[1] = eventId;
+    buffer[1] = errorCode;
     sendFrame(buffer, 2);
   }
   
-  // Send a two byte frame notifying caller that something slightly improper occured in the communications protocol
-  void sendWarning(byte eventId)
+  void sendWarning(byte warningCode)
   {
     byte buffer[2];
     buffer[0] = FRAMES_WARNING;
-    buffer[1] = eventId;
+    buffer[1] = warningCode;
     sendFrame(buffer, 2);
   }
   
@@ -190,7 +188,6 @@ namespace reflectaFrames
     return frameBufferSourceLength;
   }
   
-  // Reset the communications protocol
   void reset()
   {
     nextSequence = 0;
@@ -198,7 +195,6 @@ namespace reflectaFrames
     Serial.flush();
   }
   
-  // Configure the communications protocol and open the serial port, to be called inside Arduino setup()
   void setup(int speed)
   {
     if (frameBufferAllocationCallback == NULL)
@@ -217,11 +213,8 @@ namespace reflectaFrames
 
   byte sequence;
 
-  // Millisecond counter for last time a frame was received.  Can be used to implement a 'deadman switch' when
-  // communications with a host PC are lost or interrupted.
   uint32_t lastFrameReceived;
   
-  // Read the uncoming data stream, to be called inside Arduino loop()
   void loop()
   {
     byte b;

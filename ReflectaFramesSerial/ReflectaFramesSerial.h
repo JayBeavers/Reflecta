@@ -35,12 +35,12 @@ namespace reflectaFrames
   void setBufferAllocationCallback(frameBufferAllocationFunction frameBufferAllocation);
   
   // Send a two byte frame notifying caller that something improper occured
-  void sendError(byte eventId);
+  void sendError(byte errorCode);
   
   // Send a two byte frame notifying caller that something slightly improper occured
-  void sendWarning(byte eventId);
+  void sendWarning(byte warningCode);
   
-  // Send a string message
+  // Send a string message, generally used for debugging
   void sendMessage(String message);
   
   // Send a frame of data returning the sequence id
