@@ -1,6 +1,18 @@
 __Reflecta__ is a communications library for Arduino that enables remote calling of functions, sending & receiving frames of byte data or string messages, and receiving high speed 'heartbeats' of sensor data.
 
-# Why? #
+---
+
+## Getting Started
+
+To install, download the contents of the repository as a zip file and decompress into your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
+
+__Examples__
+
+[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener at 9600 baud and exposes the Arduino Core functions to be called.  This is the 'Arduino side' of the conversation.
+
+[NodeClient](https://github.com/JayBeavers/Reflecta/tree/master/NodeClient) -- a [NodeJS](http://nodejs.org/) library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/samples/simple.js) as an example.
+
+## Why?
 
 Arduino easily connects to a PC over USB as a Virtual COM port but turning this serial data stream into a reliable communications channel takes considerable work.  Firmata is a comparable library but it has some limitations:
 
@@ -20,17 +32,7 @@ The goal is to develop a protocol that fixes these issues, specifically:
 
 - Design for CPU and communications efficiency in order to take best advantage of limited microcontroller resources.
 
-# Getting Started #
-
-To install, download the contents of the repository as a zip file and decompress into your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
-
-__Examples__
-
-[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener at 9600 baud and exposes the Arduino Core functions to be called.  This is the 'Arduino side' of the conversation.
-
-[NodeClient](https://github.com/JayBeavers/Reflecta/tree/master/NodeClient) -- a [NodeJS](http://nodejs.org/) library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/samples/simple.js) as an example.
-
-# How? #
+## How?
 
 Reflecta is four Arduino libraries and one NodeJS client:
 
@@ -50,7 +52,7 @@ Reflecta is four Arduino libraries and one NodeJS client:
 
 ---
 
-## Design ##
+## Design
 
 After reviewing existing technologies, the approach settled on is:
 
@@ -71,7 +73,7 @@ SLIP defines two special characters, __END__ (0xC0) and __ESCAPE__ (0xDB), that 
 
     write END (0xC0)
 
-### Frame Layout ###
+### Frame Layout
 
 Over the wire, a frame of data looks like:
 
@@ -84,3 +86,9 @@ __Payload[]__ is the data bytes you want to transfer.
 __Checksum__ is calculated using XOR ( ^= ) on each unescaped byte of Sequence and Payload[].  Checksum is validated by calling XOR on each byte of the incoming frame such that when the END character is reached, the current value of the calculated checksum should be zero because the frame's checksum just XORed with itself.
 
 This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per message) and ease of calculation.  The length of payload is inferred from the length between END characters rather than encoded into the frame.
+
+---
+
+## Futures
+
+See [this Trello Board](https://trello.com/board/reflecta/4fe0b182caf51043640db94b) for planned work.
