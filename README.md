@@ -59,9 +59,9 @@ After reviewing existing technologies, the approach settled on is:
 - Start with the [STK500 protocol](http://www.atmel.com/Images/doc2591.pdf) from Atmel which has MESSAGE\_START, SEQUENCE\_NUMBER, and a simple 8 bit xor CHECKSUM.
 - STK500 doesn't escape the data, so substitute [SLIP framing](http://www.ietf.org/rfc/rfc1055.txt) for the STK500 message start/message size design.  SLIP is very simple to understand and code.
 
-### [SLIP](http://www.ietf.org/rfc/rfc1055.txt), (e.g. Serial Line IP) In A Nutshell ###
+### SLIP In A Nutshell ###
 
-SLIP defines two special characters, __END__ (0xC0) and __ESCAPE__ (0xDB), that must be escaped if they are found in the frame of payload data.  The pseudocode for slip encoding is:
+SLIP (Serial Line IP) is an [IETF standard](http://www.ietf.org/rfc/rfc1055.txt) developed to send network packets over a serial line.  SLIP defines two special characters, __END__ (0xC0) and __ESCAPE__ (0xDB), that must be escaped if they are found in the payload data.  The pseudocode for SLIP encoding is:
 
     for each byte in payload[]
 
@@ -89,6 +89,14 @@ This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per
 
 ---
 
+## Projects using Reflecta
+
+[RocketBot](https://github.com/JayBeavers/RocketBot) is a robot built around a Parallax Eddie chassis that adds a pneumatic straw rocket launcher and blinky lights.  It was created for Maker Faire 2012 in San Mateo CA and Seattle WA.
+
 ## Futures
 
 See [this Trello Board](https://trello.com/board/reflecta/4fe0b182caf51043640db94b) for planned work.
+
+## Blogs
+
+[Jay Beavers' blog](http://blog.jaybeavers.org/) on Reflecta and RocketBot.
