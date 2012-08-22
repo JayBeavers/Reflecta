@@ -15,9 +15,6 @@ var reflecta = new Reflecta(port, function(err) {
 reflecta.on('error', function(error) { console.log("e: " + error); });
 reflecta.on('warning', function(warning) { console.log("w: " + warning); });
 reflecta.on('message', function(message) { console.log("m: " + message); });
-reflecta.on('response', function(response) { console.log("r: " + util.inspect(response)); });
-reflecta.on('heartbeat', function(heartbeat) { console.log("h: " + util.inspect(heartbeat)); });
-reflecta.on('frame', function(frame) { console.log("f: " + util.inspect(frame)); });
 
 reflecta.on('portOpen', function() { console.log("portOpen"); });
 reflecta.on('portClose', function() { console.log("portClose"); });
