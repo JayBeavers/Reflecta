@@ -11,7 +11,7 @@ function Reflecta(port, options, callback) {
 
   var self = this;
 
-  if (!callback || typeof callback != "function") {
+  if (!callback || typeof callback !== "function") {
     callback = options;   // callback must be the second parameter
     options = undefined;  // no option passed
   }
@@ -78,25 +78,24 @@ function Reflecta(port, options, callback) {
   var writeSequence = 0;
   var writeChecksum = 0;
   
-  var writeEscaped = function(b)
-    {
-      switch(b)
-      {
-        case EscapeCharacters.END:
-          writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPE;
-          writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPED_END;
-          break;
-        case EscapeCharacters.ESCAPE:
-          writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPE;
-          writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPED_ESCAPE;
-          break;
-        default:
-          writeArray[writeArrayIndex++] = b;
-          break;
-      }
-      
-      writeChecksum ^= b;
+  var writeEscaped = function(b) {
+    switch(b) {
+
+      case EscapeCharacters.END:
+        writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPE;
+        writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPED_END;
+        break;
+      case EscapeCharacters.ESCAPE:
+        writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPE;
+        writeArray[writeArrayIndex++] = EscapeCharacters.ESCAPED_ESCAPE;
+        break;
+      default:
+        writeArray[writeArrayIndex++] = b;
+        break;
     }
+    
+    writeChecksum ^= b;
+  };
     
   var readArray = [];
   var readArrayIndex = 0;
@@ -126,12 +125,12 @@ function Reflecta(port, options, callback) {
         }
       }
       
-      if (b == EscapeCharacters.ESCAPE) {
+      if (b === EscapeCharacters.ESCAPE) {
         escaped = true;
         return null;      
       } 
       
-      if (b == EscapeCharacters.END) {
+      if (b === EscapeCharacters.END) {
         switch (readState)
         {
           case ReadState.WaitingForEnd:
@@ -148,7 +147,7 @@ function Reflecta(port, options, callback) {
       }
       
       return b;
-  }
+  };
   
   var frameSequence = 0;
   var frameBuffer = []; // Buffer to hold a frame of data pulled out of the incoming communications stream
@@ -178,7 +177,7 @@ function Reflecta(port, options, callback) {
           
           frameSequence = b;
           
-          if (readSequence++ != frameSequence) {
+          if (readSequence++ !== frameSequence) {
             readSequence = frameSequence + 1;
           }
           
@@ -199,7 +198,7 @@ function Reflecta(port, options, callback) {
           
         case ReadState.ProcessingFrame:
           // zero expected because when CRC of data is XORed with Checksum byte it should equal zero
-          if (readChecksum != 0) {
+          if (readChecksum !== 0) {
             
             self.emit('warning', 'Local: frame corrupt, crc mismatch', data, readChecksum);
             
@@ -230,8 +229,8 @@ function Reflecta(port, options, callback) {
               case FrameTypes.Response:
     
                 var responseToSequence = frameBuffer[1];
-                var length = frameBuffer[2];
-                var message = new Buffer(frameBuffer).slice(3, length + 3);
+                var frameLength = frameBuffer[2];
+                var message = new Buffer(frameBuffer).slice(3, frameLength + 3);
                 self.emit('response', { sequence: responseToSequence, message: message });
                 
                 break;
@@ -259,7 +258,7 @@ function Reflecta(port, options, callback) {
           break;
       }            
     }
-  }
+  };
   
   serialPort.on('data', parseFrame);
   serialPort.on('open', function() { self.emit('portOpen'); });
@@ -273,26 +272,41 @@ function Reflecta(port, options, callback) {
   
   this.sendFrame = function(frame, frame2, frame3, frame4) {
   
-    if (!Buffer.isBuffer(frame)) frame = new Buffer(frame);
+    if (!Buffer.isBuffer(frame)) {
+      frame = new Buffer(frame);
+    }
     
     // This smells like something better done with params :-)
     if (frame2) {
-      if (!Buffer.isBuffer(frame2)) frame2 = new Buffer(frame2);
+
+      if (!Buffer.isBuffer(frame2)) {
+        frame2 = new Buffer(frame2);
+      }
+
       frame = Buffer.concat( [frame, frame2] );
     }
 
     if (frame3) {
-      if (!Buffer.isBuffer(frame3)) frame3 = new Buffer(frame3);
+
+      if (!Buffer.isBuffer(frame3)) {
+        frame3 = new Buffer(frame3);
+      }
+
       frame = Buffer.concat( [frame, frame3] );
     }
 
     if (frame4) {
-      if (!Buffer.isBuffer(frame4)) frame4 = new Buffer(frame4);
+      if (!Buffer.isBuffer(frame4)) {
+        frame4 = new Buffer(frame4);
+      }
+
       frame = Buffer.concat( [frame, frame4] );
     }
     
     // Artificial 8-bit rollover
-    if (writeSequence == 256) writeSequence = 0;
+    if (writeSequence === 256) { 
+      writeSequence = 0;
+    }
     
     // Reinitialize the writeArray and checksum
     writeChecksum = 0;
@@ -323,7 +337,7 @@ function Reflecta(port, options, callback) {
   //     [ 9 8 7 6 ]    parameter data to be pushed on the stack
   this.pushArray = function(array) {
     
-    sendFrame(FunctionIds.pushArray, array);
+    self.sendFrame(self.FunctionIds.pushArray, array);
     
   };
   
@@ -335,7 +349,7 @@ function Reflecta(port, options, callback) {
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
 
-      if (response.sequence == callSequence) {
+      if (response.sequence === callSequence) {
 
           self.interfaces = {};
 
@@ -364,7 +378,7 @@ function Reflecta(port, options, callback) {
     
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
-      if (response.sequence == callSequence) {
+      if (response.sequence === callSequence) {
         callback(null, response.message);
       }
       
@@ -378,13 +392,13 @@ function Reflecta(port, options, callback) {
     
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
-      if (response.sequence == callSequence) {
+      if (response.sequence === callSequence) {
         callback(null, response.message);
       }
 
     });
   };
-};
+}
 
 util.inherits(Reflecta, events.EventEmitter);
 

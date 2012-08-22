@@ -1,3 +1,6 @@
+/*global describe */
+/*global it */
+
 var devicePath = "/dev/ttyACM0";
 
 var assert = require('chai').assert;
@@ -86,28 +89,22 @@ describe('Hello', function() {
       
       reflecta.on('message', function(message) { console.log(message); });
       reflecta.on('heartbeat', function(heartbeat) {
-        // Break the incoming data into floats
-        var arrayBuffer = new ArrayBuffer(heartbeat.data.length);
-        var byteView = new Uint8Array(arrayBuffer);
-        var floatView = new Float32Array(arrayBuffer);
-        
-        byteView.set(heartbeat.data);
         
         var hbData = {
           gyroscope: {
-            x: floatView[8],
-            y: floatView[7],
-            z: floatView[6]
+            x: heartbeat.data.readFloatBE(32),
+            y: heartbeat.data.readFloatBE(28),
+            z: heartbeat.data.readFloatBE(24)
           },
           accelerometer: {
-            x: floatView[5],
-            y: floatView[4],
-            z: floatView[3]
+            x: heartbeat.data.readFloatBE(20),
+            y: heartbeat.data.readFloatBE(16),
+            z: heartbeat.data.readFloatBE(12)
           },
           magnometer: {
-            x: floatView[2],
-            y: floatView[1],
-            z: floatView[0]
+            x: heartbeat.data.readFloatBE(8),
+            y: heartbeat.data.readFloatBE(4),
+            z: heartbeat.data.readFloatBE(0)
           }
         };
             

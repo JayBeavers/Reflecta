@@ -6,5 +6,5 @@ module.exports = function(reflecta, interfaceStart) {
     setFrameRate : function(rate) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 2, rate > 8, rate & 0xFF, interfaceStart] );
     }
-  }
-}
+  };
+};

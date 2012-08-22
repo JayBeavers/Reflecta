@@ -1,6 +1,3 @@
-Overview
-========
-
 Reflecta is a node.js client for communicating with an Arduino via the Reflecta protocol.
 
 ### Getting Started
@@ -28,36 +25,52 @@ simplify in future releases
 
 ### Events
 
-#### reflecta.on('error', function(err) ... );
+```javascript
+reflecta.on('error', function(err) ... );
+```
 
 An error was detected in the protocol, anything from out of sequence (dropped frame) to bad CRC or
 unexpected SLIP Escape (corrupted data).
 
-#### reflecta.on('message', function(message) ... );
+```javascript
+reflecta.on('message', function(message) ... );
+```
 
 A string message was received.  Generally used for 'println debugging' from the Arduino.
 
-#### reflecta.on('response', function(response) ... );
+```javascript
+reflecta.on('response', function(response) ... );
+```
 
 A response was received to a function executed on the Arduino by a frame sent from this client.
 
-#### reflecta.on('frame', function(frame) ... );
+```javascript
+reflecta.on('frame', function(frame) ... );
+```
 
 A frame of data was received from the Arduino.
 
-#### reflecta.on('portClose', function() ... );
+```javascript
+reflecta.on('portClose', function() ... );
+```
 
 The communications port was closed.  A light wrapper over node-serialport's close event.
 
-#### reflecta.on('portEnd', function() ... );
+```javascript
+reflecta.on('portEnd', function() ... );
+```
 
 The communications port was ended.  A light wrapper over node-serialport's end event.
 
-#### reflecta.on('portError', function(err) ... );
+```javascript
+reflecta.on('portError', function(err) ... );
+```
 
 The communications port had an error.  A light wrapper over node-serialport's error event.
 
-#### reflecta.on('portOpen', function() ... );
+```javascript
+reflecta.on('portOpen', function() ... );
+```
 
 The communications port is open.  A light wrapper over node-serialport's open event.
 

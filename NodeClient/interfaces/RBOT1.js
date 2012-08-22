@@ -9,11 +9,11 @@ module.exports = function(reflecta, interfaceStart) {
     },
 
     Fire : function() {
-      reflecta.sendFrame( [value,interfaceStart + 1] );
+      reflecta.sendFrame( [interfaceStart + 1] );
     },
 
     Light : function(value) {
-      reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart + 2] );
+      reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value, interfaceStart + 2] );
     },
 
     Pan : function(value) {
@@ -31,5 +31,5 @@ module.exports = function(reflecta, interfaceStart) {
     Valve : function(value) {
       reflecta.sendFrame( [reflecta.FunctionIds.pushArray, 1, value,interfaceStart + 6] );
     }
-  }
-}
+  };
+};

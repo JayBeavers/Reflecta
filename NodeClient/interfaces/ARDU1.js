@@ -72,6 +72,5 @@ module.exports = function(reflecta, interfaceStart) {
         reflecta.sendFrame(interfaceStart + 16);
       }
     }
-
-  }
-}
+  };
+};

@@ -31,5 +31,5 @@ module.exports = function(reflecta, interfaceStart) {
         callback(currentMotor0, currentMotor1);
       });
     }
-  }
-}
+  };
+};
