@@ -31,144 +31,90 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h1>Reflecta</h1>
+        <p><strong>Reflecta</strong> is a communications library for Arduino that enables remote calling of functions, sending &amp; receiving frames of byte data or string messages, and receiving high speed 'heartbeats' of sensor data.</p>
 
-<p>Reflecta is a remote communications library for Arduino.  It enables you to integrate Arduino with your host computer applications by remotely calling Arduino functions like digitalWrite or analogRead, writing Arduino programs that send &amp; receive frames of byte data or string messages, or receiving high speed GPIO data.</p>
+<hr><h2>Getting Started</h2>
+
+<p>To install, download the contents of the repository as a zip file and decompress into your <a href="http://arduino.cc/it/Reference/Libraries">'sketchbook' folder</a> (on Windows this is My Documents -&gt; arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -&gt; Import Library.</p>
+
+<p><strong>Examples</strong></p>
+
+<p><a href="https://github.com/JayBeavers/Reflecta/blob/master/Samples/BasicReflecta/BasicReflecta.ino">BasicReflecta</a> -- opens a Reflecta listener at 9600 baud and exposes the Arduino Core functions to be called.  This is the 'Arduino side' of the conversation.</p>
+
+<p><a href="https://github.com/JayBeavers/Reflecta/tree/master/NodeClient">NodeClient</a> -- a <a href="http://nodejs.org/">NodeJS</a> library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See <a href="https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/samples/simple.js">simple.js sample</a> as an example.</p>
 
 <h2>Why?</h2>
 
-<p>The motivation to write Reflecta came from a need to combine remote IO and remote function calling for robotics scenarios.  A host PC can read sensor data off the Arduino at 400+ frames per second while calling Arduino libraries or applications to perform time sensitive (e.g. real time) tasks such as servo control, PWM, amd I2C communications.</p>
-
-<h2>How?</h2>
-
-<p>Reflecta is made of five small libraries that work together:</p>
+<p>Arduino easily connects to a PC over USB as a Virtual COM port but turning this serial data stream into a reliable communications channel takes considerable work.  Firmata is a comparable library but it has some limitations:</p>
 
 <ul>
-<li><p>ReflectaFramesSerial.h -- a framing protocol that packages byte[] data into individual frames and adds support for tracking Sequence, detecting errors, and detecting the end of the frame.  It it roughly based on <a href="http://tools.ietf.org/html/rfc1055">SLIP</a> for framing and the <a href="http://www.atmel.com/Images/doc2591.pdf">STK500 communications protocol</a> for packet format.  Initial implementation (ReflectaFramesSerial) uses the Arduino Serial library for communications, a future Raw Hid implementation is planned.</p></li>
-<li><p>ReflectaFunctions.h -- a remote function calling protocol that builds on top of ReflectaFrames.  The first byte of each frame is 'function id', the second byte is 'parameter length', followed by byte[] parameters.  Arduino functions are 'registered' for rpc by calling bind(Interface, Function Pointer).  ReflectaFunctions defines function '0' as 'QueryInterface' which is used to determine whether this firmware implements an Interface.</p></li>
-<li><p>ReflectaArduinoCore.h -- a binding of the Arduino core library functions such as pinMode, digitalRead, analogWrite to the 'ARDU1' interface.</p></li>
-<li><p>ReflectaHeartbeat.h -- an Arduino-side library for reading digital and analog pins very efficienctly and sending the results at a fixed frequency to the host PC.</p></li>
-</ul><p>To install, download the contents of the repository as a zip file and decompress into your libraries folder, either where you have the Arduino IDE installed or in your <a href="http://arduino.cc/it/Reference/Libraries">'sketchbook' folder</a> (on Windows this is My Documents -&gt; arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -&gt; Import Library.</p>
+<li><p>Firmata is based on MIDI and uses a '7 bit data' design.  The 8th bit is reserved for 'commands' so all raw data sent over the wire has to be converted to/from 7 bits.</p></li>
+<li><p>Firmata is difficult to extend with new methods due to its SYSEX design and 7-bitness.</p></li>
+<li><p>Firmata doesn't detect corrupt or lost data.  Testing using USB Virtual COM with two-chip (USB chip -&gt; UART -&gt; MCU chip) boards like the UNO detected frequent data corruption at speeds over 9600 baud.  RF communications like Bluetooth or Zigbee need to be able to detect data loss and corruption in order to modify their sending behavior based on changing physical conditions such as antenna blockage or distance.</p></li>
+</ul><p>The goal is to develop a protocol that fixes these issues, specifically:</p>
 
-<hr><h2>ReflectaFrames</h2>
+<ul>
+<li><p>Use 'escaping' to delineate frames so we don't need to convert payload data to 7 bits.</p></li>
+<li><p>Add Sequence and Checksum to detect data loss and corruption.</p></li>
+<li><p>Make it easy to extend the protocol with new functions (bind) and discover what functions are implemented (queryinterface).  Minimize the amount of work needed for a library to be exposed for remote calling.</p></li>
+<li><p>Design for CPU and communications efficiency in order to take best advantage of limited microcontroller resources.</p></li>
+</ul><h2>How?</h2>
 
-<p>Setup the communications protocol, to be called in Arduino setup().</p>
+<p>Reflecta is four Arduino libraries and one NodeJS client:</p>
 
-<blockquote>
-<p>void setup(int speed);</p>
-</blockquote>
+<ul>
+<li><p><a href="https://github.com/JayBeavers/Reflecta/tree/master/ReflectaFramesSerial">ReflectaFramesSerial</a> packages byte[] data into frames over a stream, adds Sequence to detect lost frames, and adds Checksum to detect data corruption. Uses the Arduino Serial library for communications, a future Raw Hid implementation is planned.</p></li>
+<li>
+<p><a href="https://github.com/JayBeavers/Reflecta/tree/master/ReflectaFunctions">ReflectaFunctions</a> is a remote function calling protocol that builds on top of ReflectaFrames.  Arduino functions are registered by calling <em>bind(interfaceId, function pointer)</em>.</p>
 
-<p>Send a frame of data returning the sequence id.</p>
+<p>ReflectaFunctions uses a stack-based approach to calling functions. push() parameters on the stack, invoke function(s), functions pop() their parameters off the stack and push() their return values back on.</p>
 
-<blockquote>
-<p>byte sendFrame(byte* frame, byte frameLength);</p>
-</blockquote>
+<p>ReflectaFunctions exposes bind() and queryInterface() to determine which interfaces (e.g. function groups) are on the Arduino.</p>
+</li>
+<li><p><a href="https://github.com/JayBeavers/Reflecta/tree/master/ReflectaArduinoCore">ReflectaArduinoCore</a> is a binding of the Arduino core library functions such as pinMode, digitalRead, analogWrite to the 'ARDU1' interface.</p></li>
+<li><p><a href="https://github.com/JayBeavers/Reflecta/tree/master/ReflectaHeartbeat">ReflectaHeartbeat</a> is a library for reading digital and analog pins very efficienctly, calling functions and gathering their results into a data packet, and sending the results at a fixed frequency to the host PC.  ReflectaHeartbeat is optimized to quickly gather data off the Arduino while effectively sharing the CPU by using asynchronous polling inside loop() rather than delay().</p></li>
+<li><p><a href="https://github.com/JayBeavers/Reflecta/tree/master/NodeClient">NodeClient</a> is a NodeJS library built on top of node-serialport.  NodeClient uses ReflectaFunctions to queryInterface and dynamically load javascript objects for the Arduino libraries.</p></li>
+</ul><hr><h2>Design</h2>
 
-<p>Send a string message.  frame[0] = 0xFE is used to denote 'string message' followed by frame[1] = string length, then frame[2...] = UTF8 bytes.</p>
+<p>After reviewing existing technologies, the approach settled on is:</p>
 
-<blockquote>
-<p>void sendMessage(String message);</p>
-</blockquote>
+<ul>
+<li>Start with the <a href="http://www.atmel.com/Images/doc2591.pdf">STK500 protocol</a> from Atmel which has MESSAGE_START, SEQUENCE_NUMBER, and a simple 8 bit xor CHECKSUM.</li>
+<li>STK500 doesn't escape the data, so substitute <a href="http://www.ietf.org/rfc/rfc1055.txt">SLIP framing</a> for the STK500 message start/message size design.  SLIP is very simple to understand and code.</li>
+</ul><h3>
+<a href="http://www.ietf.org/rfc/rfc1055.txt">SLIP</a>, (e.g. Serial Line IP) In A Nutshell</h3>
 
-<p>Send a two byte frame notifying caller that something improper occured.  frame[0] = 0xFF is used to denote 'error', followed by frame[1] = one byte error code.</p>
+<p>SLIP defines two special characters, <strong>END</strong> (0xC0) and <strong>ESCAPE</strong> (0xDB), that must be escaped if they are found in the frame of payload data.  The pseudocode for slip encoding is:</p>
 
-<blockquote>
-<p>void sendError(byte eventId);</p>
-</blockquote>
+<pre><code>for each byte in payload[]
 
-<p>Function definition for the Frame Received function.</p>
+    if byte == ESCAPE (0xDB) write ESCAPE (0xDB) + ESCAPED_ESCAPE (0xDD)
 
-<blockquote>
-<p>typedef void (<em>frameReceivedFunction)(byte sequence, byte frameLength, byte</em> frame);</p>
-</blockquote>
+    else if byte == END (0xC0) write ESCAPE (0xDB) + ESCAPED_END (0xDC)
 
-<p>Set the Frame Received Callback in your Arduino program.</p>
+    else write byte
 
-<blockquote>
-<p>void setFrameReceivedCallback(frameReceivedFunction frameReceived);</p>
-</blockquote>
+write END (0xC0)
+</code></pre>
 
-<p>Service the incoming communications data, to be called in Arduino loop().</p>
+<h3>Frame Layout</h3>
 
-<blockquote>
-<p>void loop();</p>
-</blockquote>
+<p>Over the wire, a frame of data looks like:</p>
 
-<hr><h2>ReflectaFunctions</h2>
+<pre><code>Sequence Payload[] Checksum END
+</code></pre>
 
-<p>Bind a function to an interfaceId so it can be called by Reflecta Functions.  Function receives the Sequence number of the calling frame (to be used when sending a response) and the byte* parameters.</p>
+<p><strong>Sequence</strong> is a byte that increments on each frame sent and rolls over from 255 back to 0.</p>
 
-<blockquote>
-<p>byte bind(String interfaceId, void (<em>function)(byte callerSequence, byte parameterLength, byte</em> parameters));</p>
-</blockquote>
+<p><strong>Payload[]</strong> is the data bytes you want to transfer.</p>
 
-<p>Send a response to a function call.  Match the sequence of your caller to allow the host computer to correlate the request &amp; response.</p>
+<p><strong>Checksum</strong> is calculated using XOR ( ^= ) on each unescaped byte of Sequence and Payload[].  Checksum is validated by calling XOR on each byte of the incoming frame such that when the END character is reached, the current value of the calculated checksum should be zero because the frame's checksum just XORed with itself.</p>
 
-<blockquote>
-<p>void sendResponse(byte callerSequence, byte parameterLength, byte* parameters);</p>
-</blockquote>
+<p>This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per message) and ease of calculation.  The length of payload is inferred from the length between END characters rather than encoded into the frame.</p>
 
-<p>reflectaFunctions setup() to be called in the Arduino setup() method.</p>
+<hr><h2>Futures</h2>
 
-<blockquote>
-<p>void setup();</p>
-</blockquote>
-
-<p>To remotely call an Arduino function, send a frame consisting of:</p>
-
-<p>frame[0] = functionId</p>
-
-<p>frame[1] = length of parameter data</p>
-
-<p>frame[2...] = parameter data</p>
-
-<p>For example, to invoke function id 7 with parameter data 'ABC', send:</p>
-
-<blockquote>
-<p>0x07 03 65 66 67</p>
-
-<p>FunctionId = 7, ParameterLength = 3, A = 65, B = 66, C = 67</p>
-</blockquote>
-
-<p>To QueryInterface to find out if interface 'ARDU1' (Arduino Core Library version 1) is implemented and if so where its function index starts, send a frame to function id '0' with parameters of 'ARDU1'.</p>
-
-<blockquote>
-<p>0x00 05 65 82 68 85 49</p>
-
-<p>Function Id = 0 (QueryInterface), ParameterLength = 5, A = 65, R = 82, D = 68, U = 85, 1 = 49</p>
-</blockquote>
-
-<p>This will return a response packet containing the sequence of the calling frame.  Response packets have frame[0] = 0xFD.  For example, if the calling frame was sequence 99 and the ARDU1 interface functions start at function id 6, the response frame coming into the host PC would contain:</p>
-
-<blockquote>
-<p>0xFD 99 01 06</p>
-
-<p>Function Id = 0xFD (Response), SEQ = 99, ParameterLength = 1, Function Index = 6</p>
-</blockquote>
-
-<p>It's assumed that a higher level Reflecta Functions client library will hide this detail from the caller, instead exposing a simple function API that uses QueryInterface and sendFrame behind the scenes to make function calls appear local.</p>
-
-<hr><h2>ReflectaArduinoCore</h2>
-
-<p>Reflecta Arduino Core binds the functions pinMode, digitalRead, digitalWrite, analogRead, and analogWrite to the ARDU1 interface.  To use, QueryInterface 'ARDU1' and this will give you the function id of pinMode.  Increase the function id for each following function in the interface.  For example, if QueryInterface ARDU1 returns 9, then function id 9 = pinMode and function id 12 = analogRead.</p>
-
-<p>pinMode, digitalWrite, and analogWrite take two byte parameters, one byte for each function parameter.  digitalRead and analogRead take one byte parameters.  For example, when QueryInterface ARDU1 = 9, sending</p>
-
-<blockquote>
-<p>0x09 02 11 1</p>
-
-<p>Function Id = 0x09, ParameterLength = 2, Parameter[0] = 11, Parameter[1] = 1</p>
-</blockquote>
-
-<p>would call</p>
-
-<blockquote>
-<p>pinMode(11, 1);</p>
-</blockquote>
-
-<hr><h2>Examples</h2>
-
-<p>BasicReflecta -- simplest example of using Reflecta, opens a Reflecta listener at 19200 baud and exposes the Arduino Core functions to be called.  This sample is the 'Arduino side' of the conversation.</p>
+<p>See <a href="https://trello.com/board/reflecta/4fe0b182caf51043640db94b">this Trello Board</a> for planned work.</p>
       </section>
     </div>
 
