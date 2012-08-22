@@ -8,7 +8,7 @@ To install, download the contents of the repository as a zip file and decompress
 
 __Examples__
 
-[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener at 9600 baud and exposes the Arduino Core functions to be called.  This is the 'Arduino side' of the conversation.
+[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/Samples/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener at 9600 baud and exposes the Arduino Core functions to be called.  This is the 'Arduino side' of the conversation.
 
 [NodeClient](https://github.com/JayBeavers/Reflecta/tree/master/NodeClient) -- a [NodeJS](http://nodejs.org/) library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/samples/simple.js) as an example.
 
