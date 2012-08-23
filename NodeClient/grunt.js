@@ -25,10 +25,14 @@ module.exports = function(grunt) {
         undef: true,
         boss: true,
         eqnull: true,
-        node: true
+        node: true,
+        strict: false,
+        es5: true
       },
       globals: {
-        exports: true
+        exports: true,
+        describe: true,
+        it: true
       }
     }
   });

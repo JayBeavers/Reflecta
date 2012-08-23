@@ -1,6 +1,3 @@
-/*global describe */
-/*global it */
-
 var devicePath = "/dev/ttyACM0";
 
 var assert = require('chai').assert;

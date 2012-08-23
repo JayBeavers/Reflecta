@@ -4,8 +4,8 @@ Reflecta is a node.js client for communicating with an Arduino via the Reflecta 
 Install the module with: `npm install reflecta`
 
 ```javascript
-var Reflecta = require('./reflecta');
-var reflecta = new Reflecta("COM10");
+var Reflecta = require('reflecta');
+var reflecta = new Reflecta("/dev/ttyACM0");
 
 reflecta.on('ready', function() {
   reflecta.once('response', function(response) {
@@ -19,14 +19,15 @@ reflecta.on('ready', function() {
 ### Methods
 
 ```javascript
-reflecta.sendFrame( buffer );
+reflecta.sendFrame(buffer0, ..., bufferN);
 ```
-Sends a frame of data to the Arduino.  Auto-generates a sequence number to help in detecting lost packets.
+Sends a frame of data to the Arduino comprised by concatenating the buffers.  Parameters will be auto-converted to a [NodeJS buffer](http://nodejs.org/api/buffer.html) so an array of octets (bytes) or a string is reasonable input.
+
+Auto-generates a sequence number to help in detecting lost packets.
 Auto-calculates a simple 8 bit CRC to help detect data corruption.  Auto-escapes data using SLIP escaping to 
 turn a stream of data into deliniated frames.
 
-Note:  Be sure that portOpen event has fired before calling sendFrame.  Will be sure to clean this up and
-simplify in future releases
+Note:  Be sure that ready event has fired before calling sendFrame.
 
 ### Events
 
@@ -37,17 +38,23 @@ reflecta.on('ready', function() ... );
 The connection has been opened and reflecta is ready to be used to communicate with the Arduino.
 
 ```javascript
-reflecta.on('error', function(err) ... );
+reflecta.on('error', function(error) ... );
 ```
 
-An error was detected in the protocol, anything from out of sequence (dropped frame) to bad CRC or
-unexpected SLIP Escape (corrupted data) or a problem with the serial port.
+An fatal error was detected in the protocol, such as a buffer overflow or underflow, function id conflict, or error with the communications port.
+
+```javascript
+reflecta.on('warning', function(warning) ... );
+```
+
+A non-fatal warning was detected in the protocol, anything from out of sequence (dropped frame) to bad CRC or
+unexpected SLIP Escape (corrupted data)..
 
 ```javascript
 reflecta.on('message', function(message) ... );
 ```
 
-A string message was received.  Generally used for 'println debugging' from the Arduino.
+A string message was received.  Generally used for 'println debugging' from the Arduino.  'message' is a UTF8 string.
 
 ```javascript
 reflecta.on('response', function(response) ... );
@@ -55,11 +62,33 @@ reflecta.on('response', function(response) ... );
 
 A response was received to a function executed on the Arduino by a frame sent from this client.
 
+`response` contains properties
+
+- `sequence` contains the sequence number of the frame this is a response to so you can correlate request/response pairs.
+- `data` contains the byte[] data for the response.
+
 ```javascript
 reflecta.on('frame', function(frame) ... );
 ```
 
-A frame of data was received from the Arduino.
+A frame of data was received from the Arduino.  This event is only fired for frames that are not recognized as a known FrameType (e.g. Error, Warning, Message, Response, Heartbeat) by the buffer[0] value.
+
+'frame' contains properties
+
+- `sequence` contains the sequence number of this frame.
+- `data` contains the byte[] data for the response.
+
+```javascript
+reflecta.on('heartbeat', function() ... );
+```
+
+A frame of heartbeat data was received from the Arduino.  Heartbeat is a scheduled delivery of data retrieved from the Arduino, such as the current reading of the digital io or analog io ports.
+
+`heartbeat` contains properties
+
+- `collectingLoops`: number of iterations through loop() while collecting heartbeat data
+- `idleLoops`: number of iterations through loop() while waiting for heartbeat timer to expire
+- `data`: heartbeat byte[]'s
 
 ```javascript
 reflecta.on('close', function() ... );
