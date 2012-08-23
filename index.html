@@ -81,10 +81,9 @@
 <ul>
 <li>Start with the <a href="http://www.atmel.com/Images/doc2591.pdf">STK500 protocol</a> from Atmel which has MESSAGE_START, SEQUENCE_NUMBER, and a simple 8 bit xor CHECKSUM.</li>
 <li>STK500 doesn't escape the data, so substitute <a href="http://www.ietf.org/rfc/rfc1055.txt">SLIP framing</a> for the STK500 message start/message size design.  SLIP is very simple to understand and code.</li>
-</ul><h3>
-<a href="http://www.ietf.org/rfc/rfc1055.txt">SLIP</a>, (e.g. Serial Line IP) In A Nutshell</h3>
+</ul><h3>SLIP In A Nutshell</h3>
 
-<p>SLIP defines two special characters, <strong>END</strong> (0xC0) and <strong>ESCAPE</strong> (0xDB), that must be escaped if they are found in the frame of payload data.  The pseudocode for slip encoding is:</p>
+<p>SLIP (Serial Line IP) is an <a href="http://www.ietf.org/rfc/rfc1055.txt">IETF standard</a> developed to send network packets over a serial line.  SLIP defines two special characters, <strong>END</strong> (0xC0) and <strong>ESCAPE</strong> (0xDB), that must be escaped if they are found in the payload data.  The pseudocode for SLIP encoding is:</p>
 
 <pre><code>for each byte in payload[]
 
@@ -112,9 +111,17 @@ write END (0xC0)
 
 <p>This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per message) and ease of calculation.  The length of payload is inferred from the length between END characters rather than encoded into the frame.</p>
 
-<hr><h2>Futures</h2>
+<hr><h2>Projects using Reflecta</h2>
+
+<p><a href="https://github.com/JayBeavers/RocketBot">RocketBot</a> is a robot built around a Parallax Eddie chassis that adds a pneumatic straw rocket launcher and blinky lights.  It was created for Maker Faire 2012 in San Mateo CA and Seattle WA.</p>
+
+<h2>Futures</h2>
 
 <p>See <a href="https://trello.com/board/reflecta/4fe0b182caf51043640db94b">this Trello Board</a> for planned work.</p>
+
+<h2>Blogs</h2>
+
+<p><a href="http://blog.jaybeavers.org/">Jay Beavers' blog</a> on Reflecta and RocketBot.</p>
       </section>
     </div>
 
