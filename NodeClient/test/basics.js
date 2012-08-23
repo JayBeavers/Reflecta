@@ -1,17 +1,37 @@
 /*global describe */
 /*global it */
 
-var devicePath = "COM4";
+var devicePath = "/dev/ttyACM0";
 
 var assert = require('chai').assert;
 var util = require('util');
+var Reflecta = require('../reflecta.js');
+
+var reflectaTestFactory = function(done) {
+
+  var reflecta = new Reflecta(devicePath);
+
+  reflecta.on('error', function(error) {
+    console.log("e: " + error);
+    reflecta.close(function() {
+      done(error);
+    });
+  });
+
+  reflecta.on('warning', function(warning) { console.log("w: " + warning); });
+  reflecta.on('message', function(message) { console.log("m: " + message); });
+  reflecta.on('close', function() { console.log('close'); });
+  reflecta.on('end', function() { console.log('end'); });
+  reflecta.on('open', function() { console.log('open'); });
+
+  return reflecta;
+}
 
 describe('Basic Reflexes', function() {
     
   it('QueryInterface Responds', function(done) {
       
-    var Reflecta = require('../reflecta.js');
-    var reflecta = new Reflecta(devicePath);
+    var reflecta = reflectaTestFactory(done);
 
     reflecta.on('ready', function() {
 
@@ -23,56 +43,26 @@ describe('Basic Reflexes', function() {
 
     });
     
-    reflecta.on('error', function(error) {
-      console.log(error);
-      reflecta.close(function() {
-        done(error);
-      });
-    });
-
-    reflecta.on('warning', function(warning) { console.log(warning); });
-    reflecta.on('portError', function(error) { console.log(error); });
-
-    reflecta.on('message', function(message) { console.log(message); });
-    reflecta.on('portClose', function() { console.log('portClose'); });
-    reflecta.on('portEnd', function() { console.log('portEnd'); });
-    reflecta.on('portOpen', function() { console.log('portOpen'); });
 
   });
   
   it('ARDU1 Blinky works', function(done) {
 
-      var Reflecta = require('../reflecta.js');
-      var reflecta = new Reflecta(devicePath);
+    var reflecta = reflectaTestFactory(done);
 
-      reflecta.on('ready', function() {
+    reflecta.on('ready', function() {
 
-        setInterval(function() { reflecta.ARDU1.gpio.digitalWrite(11, 1); }, 199);
-        setInterval(function() { reflecta.ARDU1.gpio.digitalWrite(11, 0); }, 400);
-        
-        setTimeout(function() { reflecta.close(done); }, 1700);
-      });
-
-    reflecta.on('error', function(error) {
-      console.log(error);
-      reflecta.close(function() {
-        done(error);
-      });
+      setInterval(function() { reflecta.ARDU1.gpio.digitalWrite(11, 1); }, 199);
+      setInterval(function() { reflecta.ARDU1.gpio.digitalWrite(11, 0); }, 400);
+      
+      setTimeout(function() { reflecta.close(done); }, 1700);
     });
-
-    reflecta.on('warning', function(warning) { console.log(warning); });
-    reflecta.on('portError', function(error) { console.log(error); });
-
-    reflecta.on('message', function(message) { console.log(message); });
-    reflecta.on('portClose', function() { console.log('portClose'); });
-    reflecta.on('portEnd', function() { console.log('portEnd'); });
-    reflecta.on('portOpen', function() { console.log('portOpen'); });
 
   });
 
   it('PushArray and SendResponseCount properly round trip', function(done) {
-    var Reflecta = require('../reflecta.js');
-    var reflecta = new Reflecta(devicePath);
+
+    var reflecta = reflectaTestFactory(done);
 
     reflecta.on('ready', function() {
 
@@ -110,27 +100,11 @@ describe('Basic Reflexes', function() {
         reflecta.close(function() { done(); });
       });
     });
-
-    reflecta.on('error', function(error) {
-      console.log(error);
-      reflecta.close(function() {
-        done(error);
-      });
-    });
-
-    reflecta.on('warning', function(warning) { console.log(warning); });
-    reflecta.on('portError', function(error) { console.log(error); });
-
-    reflecta.on('message', function(message) { console.log(message); });
-    reflecta.on('portClose', function() { console.log('portClose'); });
-    reflecta.on('portEnd', function() { console.log('portEnd'); });
-    reflecta.on('portOpen', function() { console.log('portOpen'); });
-
   });
 
   it('Simple PushArray and SendResponse properly round trip', function(done) {
-    var Reflecta = require('../reflecta.js');
-    var reflecta = new Reflecta(devicePath);
+
+    var reflecta = reflectaTestFactory(done);
 
     reflecta.on('ready', function() {
 
@@ -158,98 +132,5 @@ describe('Basic Reflexes', function() {
         });
       });
     });
-
-    reflecta.on('error', function(error) {
-      console.log(error);
-      reflecta.close(function() {
-        done(error);
-      });
-    });
-
-    reflecta.on('warning', function(warning) { console.log(warning); });
-    reflecta.on('portError', function(error) { console.log(error); });
-
-    reflecta.on('message', function(message) { console.log(message); });
-    reflecta.on('portClose', function() { console.log('portClose'); });
-    reflecta.on('portEnd', function() { console.log('portEnd'); });
-    reflecta.on('portOpen', function() { console.log('portOpen'); });
-
-  });
-});
-
-describe('Reflecta Heartbeat', function() {
-
-  // Meant to be run when Reflecta has the ReflectaHeartbeat turned on and running
-  // Not a useful test as it doesn't ensure a heartbeat is running and it doesn't check for a result
-  it('Basic Heartbeat detected', function(done) {
-
-    var Reflecta = require('../reflecta.js');
-    var reflecta = new Reflecta(devicePath);
-
-    reflecta.on('error', function(error) {
-      console.log(error);
-      reflecta.close(function() {
-        done(error);
-      });
-    });
-
-    reflecta.on('warning', function(warning) { console.log(warning); });
-    reflecta.on('portError', function(error) { console.log(error); });
-
-    reflecta.on('message', function(message) { console.log(message); });
-    reflecta.on('portClose', function() { console.log('portClose'); });
-    reflecta.on('portEnd', function() { console.log('portEnd'); });
-    reflecta.on('portOpen', function() { console.log('portOpen'); });
-      
-    setTimeout(function() { reflecta.close(done); }, 1700);
-  });
-
-  // Meant to be run as the client for BasicIMU
-  // Not a useful test as it doesn't ensure a heartbeat is running and it doesn't check for a result
-  it('IMU Heartbeat Received', function(done) {
-
-    var Reflecta = require('../reflecta.js');
-    var reflecta = new Reflecta(devicePath);
-
-    reflecta.on('heartbeat', function(heartbeat) {
-      
-      var hbData = {
-        gyroscope: {
-          x: heartbeat.data.readFloatBE(32),
-          y: heartbeat.data.readFloatBE(28),
-          z: heartbeat.data.readFloatBE(24)
-        },
-        accelerometer: {
-          x: heartbeat.data.readFloatBE(20),
-          y: heartbeat.data.readFloatBE(16),
-          z: heartbeat.data.readFloatBE(12)
-        },
-        magnometer: {
-          x: heartbeat.data.readFloatBE(8),
-          y: heartbeat.data.readFloatBE(4),
-          z: heartbeat.data.readFloatBE(0)
-        }
-      };
-          
-      console.log(heartbeat.collectingLoops + " : " + heartbeat.idleLoops + " : " + util.inspect(hbData));
-
-    });
-
-    reflecta.on('error', function(error) {
-      console.log(error);
-      reflecta.close(function() {
-        done(error);
-      });
-    });
-
-    reflecta.on('warning', function(warning) { console.log(warning); });
-    reflecta.on('portError', function(error) { console.log(error); });
-
-    reflecta.on('message', function(message) { console.log(message); });
-    reflecta.on('portClose', function() { console.log('portClose'); });
-    reflecta.on('portEnd', function() { console.log('portEnd'); });
-    reflecta.on('portOpen', function() { console.log('portOpen'); });
-
-    setTimeout(function() { reflecta.close(done); }, 1700);
   });
 });

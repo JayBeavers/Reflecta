@@ -254,10 +254,10 @@ function Reflecta(port, options) {
   };
   
   serialPort.on('data', parseFrame);
-  serialPort.on('open', function() { self.emit('portOpen'); });
-  serialPort.on('close', function() { self.emit('portClose'); });
-  serialPort.on('end', function() { self.emit('portEnd'); });
-  serialPort.on('error', function(err) { self.emit('portError', err); });
+  serialPort.on('open', function() { self.emit('open'); });
+  serialPort.on('close', function() { self.emit('close'); });
+  serialPort.on('end', function() { self.emit('end'); });
+  serialPort.on('error', function(err) { self.emit('error', err); });
   
   events.EventEmitter.call(this);
   

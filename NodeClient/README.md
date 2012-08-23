@@ -8,11 +8,11 @@ var Reflecta = require('./reflecta');
 var reflecta = new Reflecta("COM10");
 
 reflecta.on('ready', function() {
-    reflecta.on('response', function(response) {
-		console.log(response.sequence + ' : ' + response.message);
-	});
+  reflecta.once('response', function(response) {
+    console.log(response);
+  });
 
-    reflecta.sendFrame([1]);
+  reflecta.sendFrame([1]);
 });
 ```
 
@@ -41,7 +41,7 @@ reflecta.on('error', function(err) ... );
 ```
 
 An error was detected in the protocol, anything from out of sequence (dropped frame) to bad CRC or
-unexpected SLIP Escape (corrupted data).
+unexpected SLIP Escape (corrupted data) or a problem with the serial port.
 
 ```javascript
 reflecta.on('message', function(message) ... );
@@ -62,25 +62,19 @@ reflecta.on('frame', function(frame) ... );
 A frame of data was received from the Arduino.
 
 ```javascript
-reflecta.on('portClose', function() ... );
+reflecta.on('close', function() ... );
 ```
 
 The communications port was closed.  A light wrapper over node-serialport's close event.
 
 ```javascript
-reflecta.on('portEnd', function() ... );
+reflecta.on('end', function() ... );
 ```
 
 The communications port was ended.  A light wrapper over node-serialport's end event.
 
 ```javascript
-reflecta.on('portError', function(err) ... );
-```
-
-The communications port had an error.  A light wrapper over node-serialport's error event.
-
-```javascript
-reflecta.on('portOpen', function() ... );
+reflecta.on('open', function() ... );
 ```
 
 The communications port is open.  A light wrapper over node-serialport's open event.
@@ -89,7 +83,7 @@ The communications port is open.  A light wrapper over node-serialport's open ev
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [grunt](https://github.com/cowboy/grunt).
 
 ## Release History
-Still in early alpha state
+Still in early alpha state.  Subject to frequent breaking API changes at this time.
 
 ## License
 Copyright (c) 2012 Jay Beavers  
