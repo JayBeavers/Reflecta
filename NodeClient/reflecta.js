@@ -223,8 +223,8 @@ function Reflecta(port, options) {
     
                 var responseToSequence = frameBuffer[1];
                 var frameLength = frameBuffer[2];
-                var message = new Buffer(frameBuffer).slice(3, frameLength + 3);
-                self.emit('response', { sequence: responseToSequence, message: message });
+                var data = new Buffer(frameBuffer).slice(3, frameLength + 3);
+                self.emit('response', { sequence: responseToSequence, data: data });
                 
                 break;
               
