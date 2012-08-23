@@ -339,29 +339,50 @@ function Reflecta(port, options) {
     
     var callSequence = self.sendFrame(self.FunctionIds.queryInterface);
     
-    // TODO: Tighten logic not to assume ours must be the next response
-    self.once('response', function(response) {
+    var queryInterfaceHandler = function(response) {
 
       if (response.sequence === callSequence) {
 
-          self.interfaces = {};
+        self.removeListener('response', queryInterfaceHandler);
 
-          for (var interfaceIndex = 0; interfaceIndex < response.message.length / 6; interfaceIndex++) {
-            var interfaceOffset = response.message[interfaceIndex * 6];
-            var interfaceId = response.message.slice(interfaceIndex * 6 + 1, interfaceIndex * 6 + 6).toString();
-            var interfaceFilePath = path.resolve(path.dirname(module.filename), 'interfaces/' + interfaceId + '.js');
+        self.interfaces = {};
 
-            if (fs.existsSync(interfaceFilePath)) {
-              self[interfaceId] = require(interfaceFilePath)(self, interfaceOffset);
-              self.interfaces[interfaceId] = self[interfaceId];
-            } else {
-              self.emit('warning', 'QueryInterface: local interface definition not found for ' + interfaceId + ' at ' + interfaceFilePath);
-            }
+        for (var interfaceIndex = 0; interfaceIndex < response.message.length / 6; interfaceIndex++) {
+
+          var interfaceOffset = response.message[interfaceIndex * 6];
+          var interfaceId = 'reflecta_' + response.message.slice(interfaceIndex * 6 + 1, interfaceIndex * 6 + 6).toString();
+
+          try {
+            // Try and find the interface module locally
+            self[interfaceId] = require(interfaceId)(self, interfaceOffset);
+            self.interfaces[interfaceId] = self[interfaceId];
           }
+          catch (error) {
+            self.emit('message', 'QueryInterface: local interface definition not found for ' + interfaceId);
 
-          callback(self.interfaces);
+            // If not found locally, search for it in the NPM registry
+            var searchRegistry = function(interfaceId) {
+              console.log('searching for ' + interfaceId);
+              var npm = require('npm');
+              npm.load(function(error, npm) {
+                npm.install(interfaceId, function(error) {
+                  if (error) {
+                    self.emit('warning', 'QueryInterface: npm registry interface definition not found for ' + interfaceId + ', ' + error);
+                  } else {
+                    self[interfaceId] = require(interfaceId)(self, interfaceOffset);
+                    self.interfaces[interfaceId] = self[interfaceId];
+                  }
+                });
+              });                
+            }(interfaceId);
+          }
         }
-    });
+
+        callback(self.interfaces);
+      }
+    };
+
+    self.on('response', queryInterfaceHandler);
   };
   
   // Request a response with n bytes from the stack, where n == the first byte on the stack
