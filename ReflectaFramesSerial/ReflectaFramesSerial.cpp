@@ -94,19 +94,11 @@ namespace reflectaFrames
     return writeSequence++;
   }
   
-  void sendError(byte errorCode)
+  void sendEvent(FrameType type, byte code)
   {
     byte buffer[2];
-    buffer[0] = FRAMES_ERROR;
-    buffer[1] = errorCode;
-    sendFrame(buffer, 2);
-  }
-  
-  void sendWarning(byte warningCode)
-  {
-    byte buffer[2];
-    buffer[0] = FRAMES_WARNING;
-    buffer[1] = warningCode;
+    buffer[0] = type;
+    buffer[1] = code;
     sendFrame(buffer, 2);
   }
   
@@ -115,7 +107,7 @@ namespace reflectaFrames
     byte bufferLength = message.length() + 3;
     byte buffer[bufferLength];
     
-    buffer[0] = FRAMES_MESSAGE;
+    buffer[0] = Message;
     buffer[1] = message.length();
     message.getBytes(buffer + 2, bufferLength - 2);
     
@@ -138,7 +130,7 @@ namespace reflectaFrames
           b = ESCAPE;
           break;
         default:
-          sendWarning(FRAMES_WARNING_UNEXPECTED_ESCAPE);
+          sendEvent(Warning, UnexpectedEscape);
           state = WAITING_FOR_RECOVERY;
           break;
       }
@@ -164,7 +156,7 @@ namespace reflectaFrames
             state = PROCESS_PAYLOAD;
             break;
           default:
-            sendWarning(FRAMES_WARNING_UNEXPECTED_END);
+            sendEvent(Warning, UnexpectedEnd);
             state = WAITING_FOR_RECOVERY;
             break;
         }
@@ -234,7 +226,7 @@ namespace reflectaFrames
             {
               sendMessage("Expected " + String(nextSequence - 1, HEX) + " received " + String(sequence, HEX) );
               nextSequence = sequence + 1;
-              sendWarning(FRAMES_WARNING_OUT_OF_SEQUENCE);
+              sendEvent(Warning, OutOfSequence);
             }
             
             frameBufferLength = frameBufferAllocationCallback(&frameBuffer);
@@ -246,7 +238,7 @@ namespace reflectaFrames
           case WAITING_FOR_BYTECODE:
             if (frameIndex == frameBufferLength)
             {
-              sendError(FRAMES_ERROR_BUFFER_OVERFLOW);
+              sendEvent(Error, BufferOverflow);
               state = WAITING_FOR_RECOVERY;
               readChecksum = 0;
             }
@@ -269,7 +261,7 @@ namespace reflectaFrames
             }
             else
             {
-              sendWarning(FRAMES_WARNING_CRC_MISMATCH);
+              sendEvent(Warning, CrcMismatch);
               state = WAITING_FOR_RECOVERY;
               readChecksum = 0;
             }

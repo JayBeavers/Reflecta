@@ -64,7 +64,7 @@ namespace reflectaFunctions
     }
     else
     {
-      reflectaFrames::sendError(FUNCTIONS_ERROR_FUNCTION_CONFLICT);
+      reflectaFrames::sendEvent(reflectaFrames::Error, FunctionConflict);
     }
 
     return openFunctionIndex++;
@@ -78,7 +78,7 @@ namespace reflectaFunctions
   {
     byte frame[3 + parameterLength];
 
-    frame[0] = FUNCTIONS_RESPONSE;
+    frame[0] = Response;
     frame[1] = callerSequence;
     frame[2] = parameterLength;
     memcpy(frame + 3, parameters, parameterLength);
@@ -95,7 +95,7 @@ namespace reflectaFunctions
     }
     else
     {
-      reflectaFrames::sendError(FUNCTIONS_ERROR_FUNCTION_NOT_FOUND);
+      reflectaFrames::sendEvent(reflectaFrames::Error, FunctionNotFound);
     }
   }
 
@@ -107,7 +107,7 @@ namespace reflectaFunctions
   {
     if (parameterStackTop == parameterStackMax)
     {
-      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_OVERFLOW);
+      reflectaFrames::sendEvent(reflectaFrames::Error, StackOverflow);
     }
     else
     {
@@ -119,7 +119,7 @@ namespace reflectaFunctions
   {
     if (parameterStackTop > parameterStackMax - 2)
     {
-      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_OVERFLOW);
+      reflectaFrames::sendEvent(reflectaFrames::Error, StackOverflow);
     }
     else
     {
@@ -132,7 +132,7 @@ namespace reflectaFunctions
   {
     if (parameterStackTop == -1)
     {
-      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
+      reflectaFrames::sendEvent(reflectaFrames::Error, StackUnderflow);
       return -1;
     }
     else
@@ -145,7 +145,7 @@ namespace reflectaFunctions
   {
     if (parameterStackTop == -1 || parameterStackTop == 0)
     {
-      reflectaFrames::sendError(FUNCTIONS_ERROR_STACK_UNDERFLOW);
+      reflectaFrames::sendEvent(reflectaFrames::Error, StackUnderflow);
       return -1;
     }
     else
@@ -166,7 +166,7 @@ namespace reflectaFunctions
     
     byte frame[size];
     
-    frame[0] = FUNCTIONS_RESPONSE;
+    frame[0] = Response;
     frame[1] = callerSequence;
     frame[2] = count;
     for (int i = 0; i < count; i++)
@@ -201,7 +201,7 @@ namespace reflectaFunctions
   void pushArray()
   {
     // Pull off array length
-    if (execution == frameTop) reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
+    if (execution == frameTop) reflectaFrames::sendEvent(reflectaFrames::Error, FrameTooSmall);
     byte length = *execution++;
     
     // Push array data onto parameter stack as bytes, reversed
@@ -216,7 +216,7 @@ namespace reflectaFunctions
       execution++;
       if (execution > frameTop)
       {
-        reflectaFrames::sendError(FUNCTIONS_ERROR_FRAME_TOO_SMALL);
+        reflectaFrames::sendEvent(reflectaFrames::Error, FrameTooSmall);
         break;
       }
     }
@@ -261,12 +261,12 @@ namespace reflectaFunctions
 
     // Bind the QueryInterface function in the vtable
     // Do this manually as we don't want to set a matching Interface
-    vtable[FUNCTIONS_PUSHARRAY] = pushArray;
-    vtable[FUNCTIONS_QUERYINTERFACE] = queryInterface;
-    vtable[FUNCTIONS_SENDRESPONSE] = sendResponse;
-    vtable[FUNCTIONS_SENDRESPONSECOUNT] = sendResponseCount;
+    vtable[PushArray] = pushArray;
+    vtable[QueryInterface] = queryInterface;
+    vtable[SendResponse] = sendResponse;
+    vtable[SendResponseCount] = sendResponseCount;
 
-    // TODO: block out FUNCTIONS_PUSHARRAY, FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
+    // TODO: block out FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
 
     // Hook the incoming frames and turn them into function calls
     reflectaFrames::setFrameReceivedCallback(frameReceived);

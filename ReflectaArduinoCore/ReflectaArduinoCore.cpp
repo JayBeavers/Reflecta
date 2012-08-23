@@ -60,7 +60,7 @@ namespace reflectaArduinoCore
     if (Wire.available())
       push(Wire.read());
     else
-      reflectaFrames::sendError(ARDUINO_CORE_ERROR_WIRE_NOT_AVAILABLE);
+      reflectaFrames::sendEvent(reflectaFrames::Error, WireNotAvailable);
   }
   
   void wireBeginTransmission()

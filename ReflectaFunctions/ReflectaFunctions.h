@@ -7,23 +7,26 @@
 #ifndef REFLECTA_FUNCTIONS_H
 #define REFLECTA_FUNCTIONS_H
 
-// Types of errors detected by Reflecta Functions
-#define FUNCTIONS_ERROR_FRAME_TOO_SMALL     0x05
-#define FUNCTIONS_ERROR_FUNCTION_CONFLICT   0x06
-#define FUNCTIONS_ERROR_FUNCTION_NOT_FOUND  0x07
-#define FUNCTIONS_ERROR_PARAMETER_MISMATCH  0x08
-#define FUNCTIONS_ERROR_STACK_OVERFLOW      0x09
-#define FUNCTIONS_ERROR_STACK_UNDERFLOW     0x0A
-
-// Frame Ids used by Reflecta Functions.  These are reserved values for the first byte of the frame data.
-#define FUNCTIONS_PUSHARRAY                 0x00
-#define FUNCTIONS_QUERYINTERFACE            0x01
-#define FUNCTIONS_SENDRESPONSE              0x02
-#define FUNCTIONS_SENDRESPONSECOUNT         0x03
-#define FUNCTIONS_RESPONSE                  0x7C
-
 namespace reflectaFunctions
 {
+  enum EventCode {
+    FrameTooSmall       = 0x05,
+    FunctionConflict    = 0x06,
+    FunctionNotFound    = 0x07,
+    ParameterMismatch   = 0x08,
+    StackOverflow       = 0x09,
+    StackUnderflow      = 0x0A
+  };
+
+  // Frame Ids used by Reflecta Functions.  These are reserved values for the first byte of the frame data.
+  enum FunctionId {
+    PushArray           = 0x00,
+    QueryInterface      = 0x01,
+    SendResponse        = 0x02,
+    SendResponseCount   = 0x03,
+    Response            = 0x7C
+  };
+
   // Bind a function to an interfaceId so it can be called by Reflecta Functions.  The assigned frame id is returned.
   byte bind(String interfaceId, void (*function)());
   

@@ -11,10 +11,12 @@
 #ifndef REFLECTA_ARDUINO_CORE_H
 #define REFLECTA_ARDUINO_CORE_H
 
-#define ARDUINO_CORE_ERROR_WIRE_NOT_AVAILABLE     0x0B
-
 namespace reflectaArduinoCore
 {
+  enum EventCode {
+    WireNotAvailable = 0x0B
+  };
+
   // ReflectaFunctions wrappers that receive the function call, parse the
   //   parameters, and call the matching Arduino libray functions
   void pinMode();

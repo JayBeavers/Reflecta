@@ -7,20 +7,22 @@ ReflectaFramesSerial.h - Library for sending frames of information from a Microc
 #ifndef REFLECTA_FRAMES_H
 #define REFLECTA_FRAMES_H
 
-// An error occurred when parsing a data packet into the Reflecta protocol 
-#define FRAMES_MESSAGE                  0x7D
-#define FRAMES_WARNING                  0x7E
-#define FRAMES_ERROR                    0x7F
-
-// Types of parsing errors detected by Reflecta Frames
-#define FRAMES_WARNING_OUT_OF_SEQUENCE  0x00
-#define FRAMES_WARNING_UNEXPECTED_ESCAPE  0x01
-#define FRAMES_WARNING_CRC_MISMATCH       0x02
-#define FRAMES_WARNING_UNEXPECTED_END     0x03
-#define FRAMES_ERROR_BUFFER_OVERFLOW    0x04
-
 namespace reflectaFrames
 {
+  enum FrameType {
+    Message   = 0x7D,
+    Warning   = 0x7E,
+    Error     = 0x7F
+  };
+
+  enum EventCode {
+    OutOfSequence     = 0x00,
+    UnexpectedEscape  = 0x01,
+    CrcMismatch       = 0x02,
+    UnexpectedEnd     = 0x03,
+    BufferOverflow    = 0x04
+  };
+
   // Function definition for Frame Buffer Allocation function, to be optionally implemented by
   // the calling library or application.
   typedef byte (*frameBufferAllocationFunction)(byte** frameBuffer);
@@ -35,10 +37,7 @@ namespace reflectaFrames
   void setBufferAllocationCallback(frameBufferAllocationFunction frameBufferAllocation);
   
   // Send a two byte frame notifying caller that something improper occured
-  void sendError(byte errorCode);
-  
-  // Send a two byte frame notifying caller that something slightly improper occured
-  void sendWarning(byte warningCode);
+  void sendEvent(FrameType type, byte code);
   
   // Send a string message, generally used for debugging
   void sendMessage(String message);
