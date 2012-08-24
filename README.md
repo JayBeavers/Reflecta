@@ -52,10 +52,9 @@ Reflecta is four Arduino libraries and one NodeJS client:
 
 ---
 
-## Design
+## Protocol Design
 
-> _Design Stability: Beta_ -- no plans to change existing APIs but may make additions, taking community feedback, documenting breaking changes
-
+> _Design Stability: Beta_ -- no plans to change protocol, taking community feedback, documenting breaking changes
 
 After reviewing existing technologies, the approach settled on is:
 
@@ -90,7 +89,7 @@ __Checksum__ is calculated using XOR ( ^= ) on each unescaped byte of Sequence a
 
 This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per message) and ease of calculation.  The length of payload is inferred from the length between END characters rather than encoded into the frame.
 
-### Design Releases
+### Protocol Design Releases
 
 - 0.3.x: Beta release of Reflecta protocol
 
