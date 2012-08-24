@@ -224,8 +224,8 @@ function Reflecta(port, options) {
     
                 var responseToSequence = frameBuffer[1];
                 var frameLength = frameBuffer[2];
-                var data = new Buffer(frameBuffer).slice(3, frameLength + 3);
-                self.emit('response', { sequence: responseToSequence, data: data });
+                var responseData = new Buffer(frameBuffer).slice(3, frameLength + 3);
+                self.emit('response', { sequence: responseToSequence, data: responseData });
                 
                 break;
               
@@ -363,7 +363,7 @@ function Reflecta(port, options) {
             self.emit('message', 'QueryInterface: local interface definition not found for ' + interfaceId);
 
             // If not found locally, search for it in the NPM registry
-            var searchRegistry = function(interfaceId) {
+            var searchRegistry = (function(interfaceId) {
               var interfaceModule = 'reflecta_' + interfaceId;
               console.log('searching for ' + interfaceId);
               var npm = require('npm');
@@ -377,7 +377,7 @@ function Reflecta(port, options) {
                   }
                 });
               });                
-            }(interfaceId);
+            }(interfaceId));
           }
         }
 

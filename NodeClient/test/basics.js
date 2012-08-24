@@ -22,7 +22,7 @@ var reflectaTestFactory = function(done) {
   reflecta.on('open', function() { console.log('open'); });
 
   return reflecta;
-}
+};
 
 describe('Basic Reflexes', function() {
     
