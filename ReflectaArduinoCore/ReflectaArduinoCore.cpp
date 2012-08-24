@@ -68,6 +68,7 @@ namespace reflectaArduinoCore
     Wire.beginTransmission(pop());
   }
   
+  // TODO: Support variants write(string) and write(data, length)
   void wireWrite()
   {
     Wire.write(pop());
@@ -80,9 +81,10 @@ namespace reflectaArduinoCore
   
   Servo servos[MAX_SERVOS];
 
+  // TODO: Support variant attach(pin, min, max)
   void servoAttach()
   {
-      int16_t pin = pop();
+      int8_t pin = pop();
       servos[pin].attach(pin);
   }
 
@@ -101,8 +103,10 @@ namespace reflectaArduinoCore
       servos[pop()].writeMicroseconds(pop16());
   }
   
+  // TODO: Support variant pulseIn(pin, value, timeout)
   void pulseIn()
   {
+    // BUGBUG: Broken, returns a 32 bit result
     push(::pulseIn(pop(), pop()));
   }
   
