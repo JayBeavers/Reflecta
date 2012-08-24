@@ -1,5 +1,7 @@
 Reflecta is a node.js client for communicating with an Arduino via the Reflecta protocol.
 
+> _Stability: Alpha -- planning on making breaking changes
+
 ### Getting Started
 Install the module with: `npm install reflecta`
 
@@ -146,7 +148,12 @@ The communications port is open.  A light wrapper over node-serialport's open ev
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [grunt](https://github.com/cowboy/grunt).
 
 ## Release History
-Still in early alpha state.  Subject to frequent breaking API changes at this time.
+
+- 0.3.x: Still in early alpha state.  Subject to frequent breaking API changes at this time.
+
+## Futures
+
+See [this Trello Board](https://trello.com/board/reflecta/4fe0b182caf51043640db94b) for planned work.
 
 ## License
 Copyright (c) 2012 Jay Beavers  

@@ -4,6 +4,8 @@ It's not expected for people to build directly upon ReflectaFrames for anything 
 
 ## ReflectaFrames API
 
+> _Stability: Beta_ -- no plans to change existing APIs but may make additions, taking community feedback, documenting breaking changes
+
 ```C
 namespace reflectaFrames {
 
@@ -30,6 +32,10 @@ namespace reflectaFrames {
 
 }
 ```
+
+### Releases
+
+- 0.3.x: Beta release of ReflectaFrames
 
 ## Silly Sample
 
@@ -107,3 +113,11 @@ typedef byte (*frameBufferAllocationFunction)(byte** frameBuffer);
 // Set the Buffer Allocation Callback
 void setBufferAllocationCallback(frameBufferAllocationFunction frameBufferAllocation);
 ```
+
+## Release History
+
+- 0.3.x: Beta release ReflectaFrames.  Mature code, will only make changes based on community feedback.
+
+## Futures
+
+- May release a RawHID version of this protocol.

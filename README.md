@@ -4,11 +4,11 @@ __Reflecta__ is a communications library for Arduino that enables remote calling
 
 ## Getting Started
 
-To install, download the contents of the repository as a zip file and decompress into your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
+To install, download the contents of the repository as an archive file and decompress into your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
 
 __Examples__
 
-[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/Samples/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener at 9600 baud and exposes the Arduino Core functions to be called.  This is the 'Arduino side' of the conversation.
+[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/Samples/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener and exposes the Arduino Core ([ARDU1](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/ARDU1.md)) functions to be called.  This is the 'Arduino side' of the conversation.
 
 [NodeClient](https://github.com/JayBeavers/Reflecta/tree/master/NodeClient) -- a [NodeJS](http://nodejs.org/) library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/samples/simple.js) as an example.
 
@@ -54,6 +54,9 @@ Reflecta is four Arduino libraries and one NodeJS client:
 
 ## Design
 
+> _Design Stability: Beta_ -- no plans to change existing APIs but may make additions, taking community feedback, documenting breaking changes
+
+
 After reviewing existing technologies, the approach settled on is:
 
 - Start with the [STK500 protocol](http://www.atmel.com/Images/doc2591.pdf) from Atmel which has MESSAGE\_START, SEQUENCE\_NUMBER, and a simple 8 bit xor CHECKSUM.
@@ -86,6 +89,10 @@ __Payload[]__ is the data bytes you want to transfer.
 __Checksum__ is calculated using XOR ( ^= ) on each unescaped byte of Sequence and Payload[].  Checksum is validated by calling XOR on each byte of the incoming frame such that when the END character is reached, the current value of the calculated checksum should be zero because the frame's checksum just XORed with itself.
 
 This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per message) and ease of calculation.  The length of payload is inferred from the length between END characters rather than encoded into the frame.
+
+### Design Releases
+
+- 0.3.x: Beta release of Reflecta protocol
 
 ---
 

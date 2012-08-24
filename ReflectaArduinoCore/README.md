@@ -1,13 +1,20 @@
 # ReflectaArduinoCore #
 
-Reflecta Arduino Core binds the functions pinMode, digitalRead, digitalWrite, analogRead, and analogWrite to the ARDU1 interface.  To use, QueryInterface 'ARDU1' and this will give you the function id of pinMode.  Increase the function id for each following function in the interface.  For example, if QueryInterface ARDU1 returns 9, then function id 9 = pinMode and function id 12 = analogRead.
+Reflecta Arduino Core binds the functions pinMode, digitalRead, digitalWrite, analogRead, and analogWrite to the ARDU1 interface.  This is the Arduino library that enables the 'send' side of the Reflecta conversation.
 
-pinMode, digitalWrite, and analogWrite take two byte parameters, one byte for each function parameter.  digitalRead and analogRead take one byte parameters.  For example, when QueryInterface ARDU1 = 9, sending
+> _Stability: Beta_ -- no plans to change existing APIs but may make additions, taking community feedback, documenting breaking changes
 
-> 0x09 02 11 1
+## Calling ReflectaArduinoCore from NodeJS
 
-> Function Id = 0x09, ParameterLength = 2, Parameter[0] = 11, Parameter[1] = 1
+Documentation on using the NodeJS client can be found [here](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/ARDU1.md).
 
-would call
+## To Be Documented -- Calling ReflectaArduinoCore 'raw' just using ReflectaFunctions
 
-> pinMode(11, 1);
+## Release History
+
+- 0.3.x: Beta release ReflectaArduinoCore with analog & digital io, wire, and servo.
+
+## Futures
+
+- Add Advanced I/O functions (tone, pulseIn, etc.)
+- Consider including other Arduino standard libraries such as Stepper, EEPROM, SD, SPI, SoftwareSerial, etc.
