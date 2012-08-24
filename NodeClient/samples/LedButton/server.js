@@ -40,7 +40,7 @@ reflecta.on('ready', function() {
     socket.on('toggle', function() {
       console.log('Received (toggle)');
       ledState ^= 1; // XOR, this toggles ledState betwen values 0 (e.g. off) and 1 (e.g. on)
-      reflecta.ardu1.gpio.digitalWrite(ledPin, ledState);
+      reflecta.ARDU1.digitalWrite(ledPin, ledState);
     });
 
   });

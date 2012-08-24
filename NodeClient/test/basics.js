@@ -49,8 +49,8 @@ describe('Basic Reflexes', function() {
 
     reflecta.on('ready', function() {
 
-      setInterval(function() { reflecta.ARDU1.gpio.digitalWrite(11, 1); }, 199);
-      setInterval(function() { reflecta.ARDU1.gpio.digitalWrite(11, 0); }, 400);
+      setInterval(function() { reflecta.ARDU1.digitalWrite(11, 1); }, 199);
+      setInterval(function() { reflecta.ARDU1.digitalWrite(11, 0); }, 400);
       
       setTimeout(function() { reflecta.close(done); }, 1700);
     });

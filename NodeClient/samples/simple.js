@@ -9,7 +9,7 @@ var reflecta = new Reflecta(port);
 reflecta.on('ready', function() {
 
   if (reflecta.ARDU1) {
-    reflecta.ARDU1.gpio.digitalWrite(ledPin, 1);
+    reflecta.ARDU1.digitalWrite(ledPin, 1);
   }
 });
 

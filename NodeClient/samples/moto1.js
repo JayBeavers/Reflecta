@@ -5,7 +5,7 @@ var Reflecta = require('../reflecta.js');
 var reflecta = new Reflecta(port);
 
 reflecta.on('ready', function() {
-  reflecta.ARDU1.gpio.digitalWrite(11, 1);
+  reflecta.ARDU1.digitalWrite(11, 1);
   reflecta.MOTO1.drive(50, -250);
 });
 
