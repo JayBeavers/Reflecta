@@ -4,25 +4,24 @@ ReflectaFramesSerial.cpp - Library for sending frames of information from a Micr
 
 #include "ReflectaFramesSerial.h"
 
-// SLIP (http://www.ietf.org/rfc/rfc1055.txt) protocol special character definitions
-// Used to find end of frame when using a streaming communications protocol
-#define END            0xC0
-#define ESCAPE         0xDB
-#define ESCAPED_END    0xDC
-#define ESCAPED_ESCAPE 0xDD
-
-// State machine for incoming data.  Packet format is:
-// Frame Sequence #, SLIP escaped
-// Byte(s) of Payload, SLIP escaped
-// CRC8 of Sequence # & Payload bytes, SLIP escaped
-// SLIP END (0xc0)
-#define WAITING_FOR_SEQUENCE 0 // Beginning of a new frame, waiting for the Sequence number
-#define WAITING_FOR_BYTECODE 1 // Reading data until an END character is found
-#define PROCESS_PAYLOAD      2 // END character found, check CRC and deliver frame
-#define WAITING_FOR_RECOVERY 3 // Current frame is invalid, wait for an END character and start parsing again
-
 namespace reflectaFrames
 {
+  // SLIP (http://www.ietf.org/rfc/rfc1055.txt) protocol special character definitions
+  // Used to find end of frame when using a streaming communications protocol
+  enum EscapeCharacters {
+    End           = 0xC0,
+    Escape        = 0xDB,
+    EscapedEnd    = 0xDC,
+    EscapedEscape = 0xDD
+  };
+
+  enum ReadState {
+    FrameStart,
+    ReadingFrame,
+    FrameEnded,
+    FrameInvalid
+  };
+
   // Checksum for the incoming frame, calculated byte by byte using XOR.  Compared against the checksum byte
   // which is stored in the last byte of the frame.
   byte readChecksum = 0;
@@ -32,16 +31,16 @@ namespace reflectaFrames
   
   // Sequence number of the incoming frames.  Compared against the sequence number at the beginning of the incoming frame
   //  to detect out of sequence frames which would point towards lost data or corrupted data.
-  byte nextSequence = 0;
+  byte readSequence = 0;
   
   // Sequence number of the outgoing frames.
   byte writeSequence = 0;
   
   // protocol parser escape state -- set when the ESC character is detected so the next character will be de-escaped
-  int escaped = 0;
+  bool escaped = false;
   
   // protocol parser state
-  int state = WAITING_FOR_SEQUENCE;
+  int state = FrameStart;
   
   frameBufferAllocationFunction frameBufferAllocationCallback = NULL;
   frameReceivedFunction frameReceivedCallback = NULL;
@@ -60,13 +59,13 @@ namespace reflectaFrames
   {
     switch(b)
     {
-      case END:
-        Serial.write(ESCAPE);
-        Serial.write(ESCAPED_END);
+      case End:
+        Serial.write(Escape);
+        Serial.write(EscapedEnd);
         break;
-      case ESCAPE:
-        Serial.write(ESCAPE);
-        Serial.write(ESCAPED_ESCAPE);
+      case Escape:
+        Serial.write(Escape);
+        Serial.write(EscapedEscape);
         break;
       default:
         Serial.write(b);
@@ -84,7 +83,7 @@ namespace reflectaFrames
       writeEscaped(frame[index]);
     }
     writeEscaped(writeChecksum);
-    Serial.write(END);
+    Serial.write(End);
 
     // On Teensies, use the extended send_now to perform an undelayed send
     #ifdef USBserial_h_
@@ -123,41 +122,41 @@ namespace reflectaFrames
     {
       switch (b)
       {
-        case ESCAPED_END:
-          b = END;
+        case EscapedEnd:
+          b = End;
           break;
-        case ESCAPED_ESCAPE:
-          b = ESCAPE;
+        case EscapedEscape:
+          b = Escape;
           break;
         default:
           sendEvent(Warning, UnexpectedEscape);
-          state = WAITING_FOR_RECOVERY;
+          state = FrameInvalid;
           break;
       }
-      escaped = 0;
+      escaped = false;
       readChecksum ^= b;
     }
     else
     {
-      if (b == ESCAPE)
+      if (b == Escape)
       {
-        escaped = 1;
+        escaped = true;
         return 0; // read escaped value on next pass
       }
-      if (b == END)
+      if (b == End)
       {
         switch (state)
         {
-          case WAITING_FOR_RECOVERY:
+          case FrameInvalid:
             readChecksum = 0;
-            state = WAITING_FOR_SEQUENCE;
+            state = FrameStart;
             break;
-          case WAITING_FOR_BYTECODE:
-            state = PROCESS_PAYLOAD;
+          case ReadingFrame:
+            state = FrameEnded;
             break;
           default:
             sendEvent(Warning, UnexpectedEnd);
-            state = WAITING_FOR_RECOVERY;
+            state = FrameInvalid;
             break;
         }
       }
@@ -182,7 +181,7 @@ namespace reflectaFrames
   
   void reset()
   {
-    nextSequence = 0;
+    readSequence = 0;
     writeSequence = 0;
     Serial.flush();
   }
@@ -217,29 +216,29 @@ namespace reflectaFrames
       {
         switch (state)
         {
-          case WAITING_FOR_RECOVERY:
+          case FrameInvalid:
             break;
             
-          case WAITING_FOR_SEQUENCE:
+          case FrameStart:
             sequence = b;
-            if (nextSequence++ != sequence)
+            if (readSequence++ != sequence)
             {
-              sendMessage("Expected " + String(nextSequence - 1, HEX) + " received " + String(sequence, HEX) );
-              nextSequence = sequence + 1;
+              sendMessage("Expected " + String(readSequence - 1, HEX) + " received " + String(sequence, HEX) );
+              readSequence = sequence + 1;
               sendEvent(Warning, OutOfSequence);
             }
             
             frameBufferLength = frameBufferAllocationCallback(&frameBuffer);
             frameIndex = 0; // Reset the buffer pointer to beginning
             readChecksum = sequence;
-            state = WAITING_FOR_BYTECODE;
+            state = ReadingFrame;
             break;
             
-          case WAITING_FOR_BYTECODE:
+          case ReadingFrame:
             if (frameIndex == frameBufferLength)
             {
               sendEvent(Error, BufferOverflow);
-              state = WAITING_FOR_RECOVERY;
+              state = FrameInvalid;
               readChecksum = 0;
             }
             else
@@ -248,7 +247,7 @@ namespace reflectaFrames
             }
             break;
             
-          case PROCESS_PAYLOAD:
+          case FrameEnded:
             lastFrameReceived = millis();
             if (readChecksum == 0) // zero expected because finally XOR'd with itself
             {
@@ -262,10 +261,10 @@ namespace reflectaFrames
             else
             {
               sendEvent(Warning, CrcMismatch);
-              state = WAITING_FOR_RECOVERY;
+              state = FrameInvalid;
               readChecksum = 0;
             }
-            state = WAITING_FOR_SEQUENCE;
+            state = FrameStart;
             break;
         }
       }

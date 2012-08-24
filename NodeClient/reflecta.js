@@ -30,10 +30,10 @@ function Reflecta(port, options) {
   };
   
   var ReadState = {
-    WaitingForEnd   : 0, // Waiting for the next End character to get a fresh frame state
-    ReadingSequence : 1, // Reading the frame sequence # at the start of the frame
-    ReadingFrame    : 2, // Reading frame data bytes until an End is received
-    ProcessingFrame : 3  // End received, processing the frame data
+    FrameStart      : 0, // Reading the frame sequence # at the start of the frame
+    ReadingFrame    : 1, // Reading frame data bytes until an End is received
+    FrameEnded      : 2,  // End received, processing the frame data
+    FrameInvalid    : 3 // Waiting for the next End character to get a fresh frame state
   };
   
   var FrameTypes = {
@@ -45,17 +45,18 @@ function Reflecta(port, options) {
   };
   
   var ErrorCodes = {
-    0x00 : 'FRAMES_WARNING_OUT_OF_SEQUENCE',
-    0x01 : 'FRAMES_WARNING_UNEXPECTED_ESCAPE',
-    0x02 : 'FRAMES_WARNING_CRC_MISMATCH',
-    0x03 : 'FRAMES_WARNING_UNEXPECTED_END',
-    0x04 : 'FRAMES_ERROR_BUFFER_OVERFLOW',
-    0x05 : 'FUNCTIONS_ERROR_FRAME_TOO_SMALL',
-    0x06 : 'FUNCTIONS_ERROR_FUNCTION_CONFLICT',
-    0x07 : 'FUNCTIONS_ERROR_FUNCTION_NOT_FOUND',
-    0x08 : 'FUNCTIONS_ERROR_PARAMETER_MISMATCH',
-    0x09 : 'FUNCTIONS_ERROR_STACK_OVERFLOW',
-    0x0A : 'FUNCTIONS_ERROR_STACK_UNDERFLOW'
+    0x00 : 'OutOfSequence',
+    0x01 : 'UnexpectedEscape',
+    0x02 : 'CrcMismatch',
+    0x03 : 'UnexpectedEnd',
+    0x04 : 'BufferOverflow',
+    0x05 : 'FrameTooSmall',
+    0x06 : 'FunctionConflict',
+    0x07 : 'FunctionNotFound',
+    0x08 : 'ParameterMismatch',
+    0x09 : 'StackOverflow',
+    0x0A : 'StackUnderflow',
+    0x0B : 'WireNotAvailable'
   };
   
   this.FunctionIds = {
@@ -93,7 +94,7 @@ function Reflecta(port, options) {
   var readArray = [];
   var readArrayIndex = 0;
   
-  var readState = ReadState.ReadingSequence;
+  var readState = ReadState.FrameStart;
   
   var readSequence = 0;
   var readChecksum = 0;
@@ -113,7 +114,7 @@ function Reflecta(port, options) {
             return EscapeCharacters.ESCAPE;
           default:
             self.emit('warning', 'Local: frame corrupt, unexpected escape');
-            readState = ReadState.WaitingForEnd;
+            readState = ReadState.FrameInvalid;
             return null;
         }
       }
@@ -126,15 +127,15 @@ function Reflecta(port, options) {
       if (b === EscapeCharacters.END) {
         switch (readState)
         {
-          case ReadState.WaitingForEnd:
-            readState = ReadState.ReadingSequence;
+          case ReadState.FrameInvalid:
+            readState = ReadState.FrameStart;
             break;
           case ReadState.ReadingFrame:
-            readState = ReadState.ProcessingFrame;
+            readState = ReadState.FrameEnded;
             break;
           default:
             self.emit('warning', 'Local: frame corrupt, unexpected end');
-            readState = ReadState.WaitingForEnd;
+            readState = ReadState.FrameInvalid;
             break;
         }
       }
@@ -162,11 +163,11 @@ function Reflecta(port, options) {
                                   
       switch (readState) {
         
-        case ReadState.WaitingForEnd:
+        case ReadState.FrameInvalid:
           
           break;
           
-        case ReadState.ReadingSequence:
+        case ReadState.FrameStart:
           
           frameSequence = b;
           
@@ -189,7 +190,7 @@ function Reflecta(port, options) {
           
           break;
           
-        case ReadState.ProcessingFrame:
+        case ReadState.FrameEnded:
           // zero expected because when CRC of data is XORed with Checksum byte it should equal zero
           if (readChecksum !== 0) {
             
@@ -247,7 +248,7 @@ function Reflecta(port, options) {
             }
           }
           
-          readState = ReadState.ReadingSequence;
+          readState = ReadState.FrameStart;
           break;
       }            
     }
@@ -347,14 +348,15 @@ function Reflecta(port, options) {
 
         self.interfaces = {};
 
-        for (var interfaceIndex = 0; interfaceIndex < response.message.length / 6; interfaceIndex++) {
+        for (var interfaceIndex = 0; interfaceIndex < response.data.length / 6; interfaceIndex++) {
 
-          var interfaceOffset = response.message[interfaceIndex * 6];
-          var interfaceId = 'reflecta_' + response.message.slice(interfaceIndex * 6 + 1, interfaceIndex * 6 + 6).toString();
+          var interfaceOffset = response.data[interfaceIndex * 6];
+          var interfaceId = response.data.slice(interfaceIndex * 6 + 1, interfaceIndex * 6 + 6).toString();
+          var interfaceModule = 'reflecta_' + interfaceId;
 
           try {
             // Try and find the interface module locally
-            self[interfaceId] = require(interfaceId)(self, interfaceOffset);
+            self[interfaceId] = require(interfaceModule)(self, interfaceOffset);
             self.interfaces[interfaceId] = self[interfaceId];
           }
           catch (error) {
@@ -362,14 +364,15 @@ function Reflecta(port, options) {
 
             // If not found locally, search for it in the NPM registry
             var searchRegistry = function(interfaceId) {
+              var interfaceModule = 'reflecta_' + interfaceId;
               console.log('searching for ' + interfaceId);
               var npm = require('npm');
               npm.load(function(error, npm) {
-                npm.install(interfaceId, function(error) {
+                npm.install(interfaceModule, function(error) {
                   if (error) {
                     self.emit('warning', 'QueryInterface: npm registry interface definition not found for ' + interfaceId + ', ' + error);
                   } else {
-                    self[interfaceId] = require(interfaceId)(self, interfaceOffset);
+                    self[interfaceId] = require(interfaceModule)(self, interfaceOffset);
                     self.interfaces[interfaceId] = self[interfaceId];
                   }
                 });
@@ -393,7 +396,7 @@ function Reflecta(port, options) {
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
       if (response.sequence === callSequence) {
-        callback(null, response.message);
+        callback(null, response.data);
       }
       
     });
@@ -407,7 +410,7 @@ function Reflecta(port, options) {
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
       if (response.sequence === callSequence) {
-        callback(null, response.message);
+        callback(null, response.data);
       }
 
     });

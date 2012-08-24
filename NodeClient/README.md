@@ -73,7 +73,7 @@ reflecta.on('frame', function(frame) ... );
 
 A frame of data was received from the Arduino.  This event is only fired for frames that are not recognized as a known FrameType (e.g. Error, Warning, Message, Response, Heartbeat) by the buffer[0] value.
 
-'frame' contains properties
+`frame` contains properties
 
 - `sequence` contains the sequence number of this frame.
 - `data` contains the byte[] data for the response.
