@@ -1,6 +1,6 @@
 Reflecta is a node.js client for communicating with an Arduino via the Reflecta protocol.
 
-> _Stability: Alpha -- planning on making breaking changes
+> _Stability: Alpha_ -- planning on making breaking changes
 
 ### Getting Started
 Install the module with: `npm install reflecta`

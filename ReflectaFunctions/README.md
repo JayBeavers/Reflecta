@@ -1,6 +1,6 @@
 # ReflectaFunctions #
 
-> _Stability: Alpha -- planning on making breaking changes
+> _Stability: Alpha_ -- planning on making breaking changes
 
 Bind a function to an interfaceId so it can be called by Reflecta Functions.  Function receives the Sequence number of the calling frame (to be used when sending a response) and the byte* parameters.
 >  byte bind(String interfaceId, void (*function)(byte callerSequence, byte parameterLength, byte* parameters));
