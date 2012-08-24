@@ -18,9 +18,9 @@ reflecta.on('ready', function() {
 
 ### Interfaces
 
-On startup, Reflecta probes the Arduino to see what libraries are installed using ReflectaFunctions' QueryInterface.  If it finds interfaces, it will automatically load a matching set of functions onto the Reflecta object so you may call them.  A few well known interfaces that are supported are:
+On startup Reflecta probes the Arduino to see what libraries are installed using QueryInterface.  If it finds interfaces, it will automatically load a matching set of functions onto the Reflecta object using node's require or an npm install.  A few well known interfaces that are supported are:
 
-__[ARDU1](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/ARDU1.md), aka Arduino Core__
+__[ARDU1](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/ARDU1.md)__
 
 The ARDU1 interface exposes the Arduino Digital & Analog I/O Functions and Wire and Servo libraries.
 
@@ -34,7 +34,7 @@ The HART1 interface exposes the settings functions for the Reflecta Heartbeat li
 
 __[RBOT1](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/reflecta_RBOT1.js)__
 
-The RBOT1 interface exposes the commands for RocketBot to launch pneumatic straw rockets and control blinky lights such as Animation, Compressor, Valve, and Fire.
+The RBOT1 interface exposes the commands for [RocketBot](https://github.com/JayBeavers/RocketBot) to launch pneumatic straw rockets and control blinky lights such as Animation, Compressor, Valve, and Fire.
 
 An example of how to use interfaces:
 ```javascript
@@ -43,7 +43,7 @@ var reflecta = new Reflecta("/dev/ttyACM0");
 
 reflecta.on('ready', function() {
 
-  reflecta.ARDU1.digitalWrite(7, 1); Set ditial pin 7 to on
+  reflecta.ARDU1.digitalWrite(7, 1); // Set digital pin 7 to on
   reflecta.MOTO1.drive(50, 50); // Set left and right wheel powers to 50 out of 255
   reflecta.RBOT1.Fire(); // Fire a straw rocket
 
