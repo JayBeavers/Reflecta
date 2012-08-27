@@ -1,4 +1,4 @@
-var devicePath = "/dev/ttyACM0";
+var devicePath = "COM4";
 
 var assert = require('chai').assert;
 var util = require('util');
@@ -33,6 +33,7 @@ describe('Basic Reflexes', function() {
     reflecta.on('ready', function() {
 
       reflecta.on('response', function(response) {
+        reflecta.removeAllListeners('error');
         reflecta.close(done);
       });
       
@@ -49,10 +50,21 @@ describe('Basic Reflexes', function() {
 
     reflecta.on('ready', function() {
 
-      setInterval(function() { reflecta.ARDU1.digitalWrite(11, 1); }, 199);
-      setInterval(function() { reflecta.ARDU1.digitalWrite(11, 0); }, 400);
+      var count = 0;
+
+      var idOn = setInterval(function() { reflecta.ARDU1.digitalWrite(11, 1); count++; }, 199);
+      var idOff = setInterval(function() {
+        reflecta.ARDU1.digitalWrite(11, 0);
+        if (count > 5) {
+          clearInterval(idOn);
+          clearInterval(idOff);
+        }
+      }, 400);
       
-      setTimeout(function() { reflecta.close(done); }, 1700);
+      setTimeout(function() {
+        reflecta.removeAllListeners('error');
+        reflecta.close(done);
+      }, 1700);
     });
 
   });
@@ -78,12 +90,7 @@ describe('Basic Reflexes', function() {
 
       reflecta.sendFrame(buffer);
 
-      reflecta.sendResponseCount(8, function(error, buffer) {
-        if (error) {
-          reflecta.close(function() { done(error); });
-          return;
-        }
-
+      reflecta.sendResponseCount(8, function(buffer) {
         var w00 = buffer.readInt16BE(0);
         var w01 = buffer.readInt16BE(2);
         var w02 = buffer.readInt16BE(4);
@@ -94,7 +101,8 @@ describe('Basic Reflexes', function() {
         assert.equal(w2, w02);
         assert.equal(w3, w03);
 
-        reflecta.close(function() { done(); });
+        reflecta.removeAllListeners('error');
+        reflecta.close(done);
       });
     });
   });
@@ -107,24 +115,25 @@ describe('Basic Reflexes', function() {
 
       reflecta.sendFrame([reflecta.FunctionIds.pushArray, 1, 99]);
 
-      reflecta.sendResponse(function(error, buffer) {
+      reflecta.sendResponse(function(buffer) {
         assert.equal(buffer[0], 99);
         assert.equal(buffer.length, 1);
 
         reflecta.sendFrame([reflecta.FunctionIds.pushArray, 1, 98]);
 
-        reflecta.sendResponseCount(1, function(error, buffer) {
+        reflecta.sendResponseCount(1, function(buffer) {
           assert.equal(buffer[0], 98);
           assert.equal(buffer.length, 1);
 
           reflecta.sendFrame([reflecta.FunctionIds.pushArray, 2, 98, 99]);
 
-          reflecta.sendResponseCount(2, function(error, buffer) {
+          reflecta.sendResponseCount(2, function(buffer) {
             assert.equal(buffer[0], 98);
             assert.equal(buffer[1], 99);
             assert.equal(buffer.length, 2);
             
-            reflecta.close(function() { done(); });
+            reflecta.removeAllListeners('error');
+            reflecta.close(done);
           });
         });
       });

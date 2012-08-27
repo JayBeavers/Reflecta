@@ -396,7 +396,7 @@ function Reflecta(port, options) {
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
       if (response.sequence === callSequence) {
-        callback(null, response.data);
+        callback(response.data);
       }
       
     });
@@ -410,7 +410,7 @@ function Reflecta(port, options) {
     // TODO: Tighten logic not to assume ours must be the next response
     self.once('response', function(response) {
       if (response.sequence === callSequence) {
-        callback(null, response.data);
+        callback(response.data);
       }
 
     });
