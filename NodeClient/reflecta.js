@@ -37,6 +37,7 @@ function Reflecta(port, options) {
   };
   
   var FrameTypes = {
+    Reset       : 0x7A,
     Heartbeat   : 0x7B,
     Response    : 0x7C,
     Message     : 0x7D,
@@ -63,7 +64,8 @@ function Reflecta(port, options) {
     pushArray           : [ 0x00 ],
     queryInterface      : [ 0x01 ],
     sendResponse        : [ 0x02 ],
-    sendResponseCount   : [ 0x03 ]
+    sendResponseCount   : [ 0x03 ],
+    reset               : [ 0x7A ]
   };
   
   var writeArray = []; // Space to compose an outgoing frame of data
@@ -262,7 +264,10 @@ function Reflecta(port, options) {
   
   events.EventEmitter.call(this);
   
-  this.close = function(callback) { serialPort.close(callback); };
+  this.close = function(callback) {
+    self.sendFrame(self.FunctionIds.reset);
+    serialPort.close(callback);
+  };
   
   this.sendFrame = function(frame, frame2, frame3, frame4) {
   

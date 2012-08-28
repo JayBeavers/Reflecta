@@ -223,9 +223,15 @@ namespace reflectaFrames
             sequence = b;
             if (readSequence++ != sequence)
             {
-              sendMessage("Expected " + String(readSequence - 1, HEX) + " received " + String(sequence, HEX) );
+              // Only send an out of sequence warning if the time between frames is < 10 seconds
+              // This is because we have no 'port opened/port closed' API on Arduino to tell when
+              // a connection has been physically reset by the host
+              if (lastFrameReceived - millis() < 10000) {
+                sendMessage("Expected " + String(readSequence - 1, HEX) + " received " + String(sequence, HEX) );
+                sendEvent(Warning, OutOfSequence);
+              }
+
               readSequence = sequence + 1;
-              sendEvent(Warning, OutOfSequence);
             }
             
             frameBufferLength = frameBufferAllocationCallback(&frameBuffer);

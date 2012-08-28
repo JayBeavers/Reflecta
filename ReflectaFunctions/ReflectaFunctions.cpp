@@ -265,6 +265,7 @@ namespace reflectaFunctions
     vtable[QueryInterface] = queryInterface;
     vtable[SendResponse] = sendResponse;
     vtable[SendResponseCount] = sendResponseCount;
+    vtable[Reset] = reflectaFrames::reset;
 
     // TODO: block out FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
 

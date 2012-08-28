@@ -24,6 +24,7 @@ namespace reflectaFunctions
     QueryInterface      = 0x01,
     SendResponse        = 0x02,
     SendResponseCount   = 0x03,
+    Reset               = 0x7A,
     Response            = 0x7C
   };
 
