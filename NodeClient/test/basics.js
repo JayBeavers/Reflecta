@@ -1,4 +1,5 @@
-var devicePath = "COM4";
+var devicePath = "COM9";
+var ledPin = 13;
 
 var assert = require('chai').assert;
 var util = require('util');
@@ -6,7 +7,7 @@ var Reflecta = require('../reflecta.js');
 
 var reflectaTestFactory = function(done) {
 
-  var reflecta = new Reflecta(devicePath);
+  var reflecta = new Reflecta(devicePath, { baudrate: 57600, buffersize: 100 });
 
   reflecta.on('error', function(error) {
     console.log("e: " + error);
@@ -51,20 +52,38 @@ describe('Basic Reflexes', function() {
     reflecta.on('ready', function() {
 
       var count = 0;
+      var toggle = false;
 
-      var idOn = setInterval(function() { reflecta.ARDU1.digitalWrite(11, 1); count++; }, 199);
-      var idOff = setInterval(function() {
-        reflecta.ARDU1.digitalWrite(11, 0);
-        if (count > 5) {
-          clearInterval(idOn);
-          clearInterval(idOff);
+      reflecta.ARDU1.pinMode(ledPin, reflecta.ARDU1.OUTPUT);
+
+      var toggleLed = function() {
+
+        if (++count > 6) {
+          reflecta.removeAllListeners('error');
+          reflecta.close(done);
+          return;
         }
-      }, 400);
-      
-      setTimeout(function() {
-        reflecta.removeAllListeners('error');
-        reflecta.close(done);
-      }, 1700);
+
+        if (toggle) {
+
+          reflecta.ARDU1.digitalWrite(ledPin, reflecta.ARDU1.LOW);
+          reflecta.ARDU1.digitalRead(ledPin, function(value) {
+            assert.equal(value, reflecta.ARDU1.LOW);
+            setTimeout(toggleLed, 200);
+          });
+        } else {
+
+          reflecta.ARDU1.digitalWrite(ledPin, reflecta.ARDU1.HIGH);
+          reflecta.ARDU1.digitalRead(ledPin, function(value) {
+            assert.equal(value, reflecta.ARDU1.HIGH);
+            setTimeout(toggleLed, 200);
+          });
+        }
+      };
+
+      toggleLed();
+      toggle ^= toggle;
+
     });
 
   });

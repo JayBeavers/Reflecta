@@ -193,7 +193,7 @@ namespace reflectaFunctions
   byte* execution;
   
   // Top of the frame marker to be used when modifying the execution pointer.
-  // Generally speaking execution should not go beyong frameTop.  When
+  // Generally speaking execution should not go beyond frameTop.  When
   // execution == frameTop, the Reflecta Functions frameReceived execution loop
   // stops. 
   byte* frameTop;  
@@ -254,6 +254,11 @@ namespace reflectaFunctions
     sendResponseCount();
   }
 
+  void reset() {
+    parameterStackTop = -1;
+    reflectaFrames::reset();
+  }
+
   void setup()
   {
     // Zero out the vtable function pointers
@@ -265,7 +270,7 @@ namespace reflectaFunctions
     vtable[QueryInterface] = queryInterface;
     vtable[SendResponse] = sendResponse;
     vtable[SendResponseCount] = sendResponseCount;
-    vtable[Reset] = reflectaFrames::reset;
+    vtable[Reset] = reset;
 
     // TODO: block out FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
 
