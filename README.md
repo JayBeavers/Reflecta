@@ -54,7 +54,7 @@ Reflecta is four Arduino libraries and one NodeJS client:
 
 ## Protocol Design
 
-> _Design Stability: Beta_ -- no plans to change protocol, taking community feedback, documenting breaking changes
+> _Design Stability: High_
 
 After reviewing existing technologies, the approach settled on is:
 

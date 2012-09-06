@@ -4,7 +4,7 @@ It's not expected for people to build directly upon ReflectaFrames for anything 
 
 ## ReflectaFrames API
 
-> _Stability: Beta_ -- no plans to change existing APIs but may make additions, taking community feedback, documenting breaking changes
+> _Stability: Medium_
 
 ```C
 namespace reflectaFrames {
@@ -46,7 +46,7 @@ fine OHNOES 0x9A
 
 void setup()
 {
-	reflectaFrames::setup(9600);
+	reflectaFrames::setup(57600);
 	reflectaFrames::setFrameReceivedCallback(frameReceived);
 }
 
@@ -121,3 +121,4 @@ void setBufferAllocationCallback(frameBufferAllocationFunction frameBufferAlloca
 ## Futures
 
 - May release a RawHID version of this protocol.
+- May renumber FrameTypes

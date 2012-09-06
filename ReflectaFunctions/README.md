@@ -1,6 +1,6 @@
 # ReflectaFunctions #
 
-> _Stability: Alpha_ -- planning on making breaking changes
+> _Stability: Low_
 
 Bind a function to an interfaceId so it can be called by Reflecta Functions.  Function receives the Sequence number of the calling frame (to be used when sending a response) and the byte* parameters.
 >  byte bind(String interfaceId, void (*function)(byte callerSequence, byte parameterLength, byte* parameters));
@@ -19,7 +19,7 @@ For an example of this, see the [NodeJS client library](https://github.com/JayBe
 
 ## Release History
 
-- 0.3.x: Alpha release ReflectaFunctions
+- 0.3.x: Initial release
 
 ## Futures
 
