@@ -1,10 +1,13 @@
-var port = 'COM4';
+var reflecta = require('../reflecta.js');
 
-var Reflecta = require('../reflecta.js');
+reflecta.detect(function(error, boards, ports) {
 
-var reflecta = new Reflecta(port);
+	if (error) {
+		console.log(error);
+		return;
+	}
 
-reflecta.on('ready', function() {
-  console.log(reflecta.interfaces);
+  console.log(boards[0].interfaces);
   process.exit();
-});
+
+})

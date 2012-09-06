@@ -22,7 +22,8 @@
     }
   ],
   "dependencies": {
-    "serialport": "*"
+    "serialport": ">= 1.0.7",
+    "socket.io": "*"
     },
   "devDependencies": {
     "mocha": "*",

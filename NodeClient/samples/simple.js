@@ -1,22 +1,27 @@
-var port = 'COM4';
 var ledPin = 11;
 
-var util = require('util');
-var Reflecta = require('../reflecta.js');
+var reflecta = require('../reflecta.js');
 
-var reflecta = new Reflecta(port);
+reflecta.detect(function(error, boards, ports) {
 
-reflecta.on('ready', function() {
+	if (error) {
+		console.log(error);
+		return;
+	}
 
-  if (reflecta.ARDU1) {
-    reflecta.ARDU1.digitalWrite(ledPin, 1);
+	var board = boards[0];
+
+	board.on('error', function(error) { console.log("e: " + error); });
+	board.on('warning', function(warning) { console.log("w: " + warning); });
+	board.on('message', function(message) { console.log("m: " + message); });
+
+	board.on('close', function() { console.log("close"); });
+	board.on('open', function() { console.log("open"); });
+	board.on('end', function() { console.log("end"); });
+
+  if (board.ARDU1) {
+  	board.ARDU1.pinMode(ledPin, board.ARDU1.OUTPUT);
+    board.ARDU1.digitalWrite(ledPin, 1);
   }
+
 });
-
-reflecta.on('error', function(error) { console.log("e: " + error); });
-reflecta.on('warning', function(warning) { console.log("w: " + warning); });
-reflecta.on('message', function(message) { console.log("m: " + message); });
-
-reflecta.on('close', function() { console.log("close"); });
-reflecta.on('open', function() { console.log("open"); });
-reflecta.on('end', function() { console.log("end"); });

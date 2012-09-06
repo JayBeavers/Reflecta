@@ -30,17 +30,25 @@ io.sockets.on('connection', function (socket) {
 
 var util = require('util');
 var Reflecta = require('../../reflecta.js');
-var reflecta = new Reflecta("COM4");
+reflecta.detect(function(error, boards, ports) {
 
-reflecta.on('error', function(error) { console.log(error); });
-reflecta.on('portError', function(err) { console.log(err); });
-  
-reflecta.on('message', function(message) { console.log(message); });
+  if (error) {
+    console.log(error);
+    return;
+  }
 
-reflecta.on('ready', function() {
+  var board = boards[0];
 
-  reflecta.on('heartbeat', function(heartbeat) {
+  board.on('error', function(error) { console.log("e: " + error); });
+  board.on('warning', function(warning) { console.log("w: " + warning); });
+  board.on('message', function(message) { console.log("m: " + message); });
 
+  board.on('close', function() { console.log("close"); });
+  board.on('open', function() { console.log("open"); });
+  board.on('end', function() { console.log("end"); });
+
+  board.on('heartbeat', function(heartbeat) {
+    
     var hbData = {
       gyroscope: {
         x: heartbeat.data.readFloatBE(32),

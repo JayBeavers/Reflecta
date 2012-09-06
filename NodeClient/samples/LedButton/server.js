@@ -1,5 +1,4 @@
 // Local settings, change to suit
-var portName = 'COM4'; // See node-serialport for documentation on how to change this for your serial port in Linux, OSX, or Windows
 var httpPort = 8088;
 var ledPin = 11;
 
@@ -7,7 +6,7 @@ var app = require('http').createServer(),
   io = require('socket.io').listen(app),
   fs = require('fs'),
   util = require('util'),
-  Reflecta = require('../../reflecta.js');
+  reflecta = require('../../reflecta.js');
 
 // static webserver
 app.on('request', function (req, res) {
@@ -24,11 +23,21 @@ app.on('request', function (req, res) {
 });
 
 // Open a connection to the arduino and callback when port is opened
-var reflecta = new Reflecta(portName);
 
-reflecta.on('error', function(err, frame, checksum) { console.log(err + ' - ' + util.inspect(frame) + ' - ' + checksum); });
+reflecta.detect(function(error, boards, ports) {
 
-reflecta.on('ready', function() {
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  var board = boards[0];
+
+  board.on('error', function(error) { console.log("e: " + error); });
+  board.on('warning', function(warning) { console.log("w: " + warning); });
+  board.on('message', function(message) { console.log("m: " + message); });
+
+  board.ARDU1.pinMode(ledPin, board.ARDU1.OUTPUT);
 
   // Wait until Arduino port is opened to listen for incoming connections  
   app.listen(httpPort);
@@ -40,8 +49,7 @@ reflecta.on('ready', function() {
     socket.on('toggle', function() {
       console.log('Received (toggle)');
       ledState ^= 1; // XOR, this toggles ledState betwen values 0 (e.g. off) and 1 (e.g. on)
-      reflecta.ARDU1.digitalWrite(ledPin, ledState);
+      board.ARDU1.digitalWrite(ledPin, ledState);
     });
-
   });
 });

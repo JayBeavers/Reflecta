@@ -1,10 +1,24 @@
 var util = require('util');
-var Reflecta = require('./reflecta.js');
-var reflecta = new Reflecta("COM10");
+var reflecta = require('../reflecta.js');
 
-reflecta.on('ready', function() {
+reflecta.detect(function(error, boards, ports) {
 
-  reflecta.on('heartbeat', function(heartbeat) {
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  var board = boards[0];
+
+  board.on('error', function(error) { console.log("e: " + error); });
+  board.on('warning', function(warning) { console.log("w: " + warning); });
+  board.on('message', function(message) { console.log("m: " + message); });
+
+  board.on('close', function() { console.log("close"); });
+  board.on('open', function() { console.log("open"); });
+  board.on('end', function() { console.log("end"); });
+
+  board.on('heartbeat', function(heartbeat) {
     
     var hbData = {
       gyroscope: {
@@ -26,9 +40,5 @@ reflecta.on('ready', function() {
         
     console.log(heartbeat.collectingLoops + " : " + heartbeat.idleLoops + " : accel " + util.inspect(hbData.accelerometer) + ' : gyro ' + util.inspect(hbData.gyroscope) + ' : magno ' + util.inspect(hbData.magnometer));
   });
+
 });
-
-reflecta.on('error', function(err, frame, checksum) { console.log(err + ' - ' + util.inspect(frame) + ' - ' + checksum); });
-reflecta.on('portError', function(err) { console.log(err); });
-
-reflecta.on('message', function(message) { console.log(message); });
