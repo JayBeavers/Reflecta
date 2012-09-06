@@ -1,98 +1,84 @@
-var devicePath = "COM9";
-var ledPin = 13;
+var ledPin = 11;
 
 var assert = require('chai').assert;
 var util = require('util');
-var Reflecta = require('../reflecta.js');
+var reflecta = require('../reflecta.js');
 
-var reflectaTestFactory = function(done) {
+var reflectaTestFactory = function(done, callback) {
 
-  var reflecta = new Reflecta(devicePath, { baudrate: 57600, buffersize: 100 });
+  reflecta.detect({ baudrate: 57600, buffersize: 100 }, function(error, boards, ports) {
 
-  reflecta.on('error', function(error) {
-    console.log("e: " + error);
-    reflecta.close(function() {
-      done(error);
+    if (error) {
+      done(new Error(error));
+      return;
+    }
+
+    boards[0].on('error', function(error) {
+      console.log("e: " + error);
+      boards[0].close(function() {
+        done(error);
+      });
     });
+
+    boards[0].on('warning', function(warning) { console.log("w: " + warning); });
+    boards[0].on('message', function(message) { console.log("m: " + message); });
+    boards[0].on('close', function() { console.log('close'); });
+    boards[0].on('end', function() { console.log('end'); });
+    boards[0].on('open', function() { console.log('open'); });
+
+    callback(boards[0]);
   });
-
-  reflecta.on('warning', function(warning) { console.log("w: " + warning); });
-  reflecta.on('message', function(message) { console.log("m: " + message); });
-  reflecta.on('close', function() { console.log('close'); });
-  reflecta.on('end', function() { console.log('end'); });
-  reflecta.on('open', function() { console.log('open'); });
-
-  return reflecta;
 };
 
 describe('Basic Reflexes', function() {
     
   it('QueryInterface Responds', function(done) {
       
-    var reflecta = reflectaTestFactory(done);
+    reflectaTestFactory(done, function(board) {    
 
-    reflecta.on('ready', function() {
-
-      reflecta.on('response', function(response) {
-        reflecta.removeAllListeners('error');
-        reflecta.close(done);
+      board.on('response', function(response) {
+        board.removeAllListeners('error');
+        board.close(done);
       });
       
-      reflecta.sendFrame(reflecta.FunctionIds.queryInterface);
+      board.sendFrame(board.FunctionIds.queryInterface);
 
     });
-    
-
   });
   
   it('ARDU1 Blinky works', function(done) {
 
-    var reflecta = reflectaTestFactory(done);
-
-    reflecta.on('ready', function() {
+    reflectaTestFactory(done, function(board) {
 
       var count = 0;
       var toggle = false;
 
-      reflecta.ARDU1.pinMode(ledPin, reflecta.ARDU1.OUTPUT);
+      board.ARDU1.pinMode(ledPin, board.ARDU1.OUTPUT);
 
       var toggleLed = function() {
 
         if (++count > 6) {
-          reflecta.removeAllListeners('error');
-          reflecta.close(done);
+          board.removeAllListeners('error');
+          board.close(done);
           return;
         }
 
-        if (toggle) {
-
-          reflecta.ARDU1.digitalWrite(ledPin, reflecta.ARDU1.LOW);
-          reflecta.ARDU1.digitalRead(ledPin, function(value) {
-            assert.equal(value, reflecta.ARDU1.LOW);
-            setTimeout(toggleLed, 200);
-          });
-        } else {
-
-          reflecta.ARDU1.digitalWrite(ledPin, reflecta.ARDU1.HIGH);
-          reflecta.ARDU1.digitalRead(ledPin, function(value) {
-            assert.equal(value, reflecta.ARDU1.HIGH);
-            setTimeout(toggleLed, 200);
-          });
-        }
+        toggle ^= 1;
+        board.ARDU1.digitalWrite(ledPin, toggle);
+        board.ARDU1.digitalRead(ledPin, function(value) {
+          assert.equal(value, toggle);
+          setTimeout(toggleLed, 200);
+        });
       };
 
       toggleLed();
-      toggle ^= toggle;
 
     });
-
   });
 
   it('PushArray and SendResponseCount properly round trip', function(done) {
 
-    var reflecta = reflectaTestFactory(done);
-
-    reflecta.on('ready', function() {
+    var reflecta = reflectaTestFactory(done, function(board) {
 
       var w0 = 250;
       var w1 = -97;
@@ -100,16 +86,16 @@ describe('Basic Reflexes', function() {
       var w3 = -129;
 
       var buffer = new Buffer(10);
-      buffer[0] = reflecta.FunctionIds.pushArray;
+      buffer[0] = board.FunctionIds.pushArray;
       buffer[1] = 8;
       buffer.writeInt16BE(w0, 2);
       buffer.writeInt16BE(w1, 4);
       buffer.writeInt16BE(w2, 6);
       buffer.writeInt16BE(w3, 8);
 
-      reflecta.sendFrame(buffer);
+      board.sendFrame(buffer);
 
-      reflecta.sendResponseCount(8, function(buffer) {
+      board.sendResponseCount(8, function(buffer) {
         var w00 = buffer.readInt16BE(0);
         var w01 = buffer.readInt16BE(2);
         var w02 = buffer.readInt16BE(4);
@@ -120,39 +106,38 @@ describe('Basic Reflexes', function() {
         assert.equal(w2, w02);
         assert.equal(w3, w03);
 
-        reflecta.removeAllListeners('error');
-        reflecta.close(done);
+        board.removeAllListeners('error');
+        board.close(done);
       });
     });
+
   });
 
   it('Simple PushArray and SendResponse properly round trip', function(done) {
 
-    var reflecta = reflectaTestFactory(done);
+    var reflecta = reflectaTestFactory(done, function(board) {
 
-    reflecta.on('ready', function() {
+      board.sendFrame([board.FunctionIds.pushArray, 1, 99]);
 
-      reflecta.sendFrame([reflecta.FunctionIds.pushArray, 1, 99]);
-
-      reflecta.sendResponse(function(buffer) {
+      board.sendResponse(function(buffer) {
         assert.equal(buffer[0], 99);
         assert.equal(buffer.length, 1);
 
-        reflecta.sendFrame([reflecta.FunctionIds.pushArray, 1, 98]);
+        board.sendFrame([board.FunctionIds.pushArray, 1, 98]);
 
-        reflecta.sendResponseCount(1, function(buffer) {
+        board.sendResponseCount(1, function(buffer) {
           assert.equal(buffer[0], 98);
           assert.equal(buffer.length, 1);
 
-          reflecta.sendFrame([reflecta.FunctionIds.pushArray, 2, 98, 99]);
+          board.sendFrame([board.FunctionIds.pushArray, 2, 98, 99]);
 
-          reflecta.sendResponseCount(2, function(buffer) {
+          board.sendResponseCount(2, function(buffer) {
             assert.equal(buffer[0], 98);
             assert.equal(buffer[1], 99);
             assert.equal(buffer.length, 2);
             
-            reflecta.removeAllListeners('error');
-            reflecta.close(done);
+            board.removeAllListeners('error');
+            board.close(done);
           });
         });
       });

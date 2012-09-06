@@ -3,10 +3,10 @@ var events = require('events');
 var util = require('util');
 var path = require('path');
 
-function Reflecta(port, options) {
+function Board(port, options) {
   
-  if (!(this instanceof Reflecta)) {
-    return new Reflecta(port, options);
+  if (!(this instanceof Board)) {
+    return new Board(port, options);
   }
 
   var self = this;
@@ -15,9 +15,19 @@ function Reflecta(port, options) {
 
   // Query our interfaces and attach our interface libraries
   serialPort.once('open', function() {
-    self.queryInterface(function(interfaces) {
-      self.emit('ready');
+
+    var timeoutId = setTimeout(function() {
+      self.emit('error', 'Timeout awaiting response to QueryInterface');
+    }, 1000);
+
+    self.once('error', function(error) {
+      clearTimeout(timeoutId);
     });
+
+    self.queryInterface(function(interfaces) {
+      clearTimeout(timeoutId);
+      self.emit('ready');
+    });    
   });
   
   // SLIP (http://www.ietf.org/rfc/rfc1055.txt) protocol special character definitions
@@ -59,7 +69,7 @@ function Reflecta(port, options) {
     0x0A : 'StackUnderflow',
     0x0B : 'WireNotAvailable'
   };
-  
+    
   this.FunctionIds = {
     pushArray           : [ 0x00 ],
     queryInterface      : [ 0x01 ],
@@ -67,7 +77,7 @@ function Reflecta(port, options) {
     sendResponseCount   : [ 0x03 ],
     reset               : [ 0x7A ]
   };
-  
+
   var writeArray = []; // Space to compose an outgoing frame of data
   var writeArrayIndex = 0;
   
@@ -422,6 +432,66 @@ function Reflecta(port, options) {
   };
 }
 
-util.inherits(Reflecta, events.EventEmitter);
+util.inherits(Board, events.EventEmitter);
 
-module.exports = Reflecta;
+// Try and programmatically detect an Arduino by inspecting the available serial port devices
+function detect(options, callback) {
+
+  if (callback === undefined) {
+    callback = options;
+    options = undefined;
+  }
+
+  require("serialport").list(function (error, results) {
+    if (error) {
+      callback(error);
+      return;
+    }
+
+    var port;
+    for (var i = 0; i < results.length; i++) {
+      var item = results[i];
+
+      // Under Windows this catches any Arduino that is loaded using the Teensyduino INF.
+      // Hardcoded to detect a Teensy INF device for now.  Teensy INF works with Leonardo too.
+      if (item.manufacturer && item.manufacturer.indexOf('PJRC') !== -1) {
+        port = results[i].comName;
+        break;
+      }
+
+      // Under Ubuntu 12.04 this catches a Leonardo.
+      if (item.pnpId && item.pnpId.indexOf('Arduino') !== -1) {
+        port = results[i].comName;
+        break;          
+      }
+
+      // Under Ubuntu 12.04 this catches a Teensy.
+      if (item.pnpId && item.pnpId.indexOf('Teensy') !== -1) {
+        port = results[i].comName;
+        break;          
+      }
+    }
+
+    if (port) {
+
+      var board = new Board(port, options);
+
+      board.once('error', function(error) {
+        board.removeAllListeners('ready');
+        // TODO: rather than call the callback with error, simply remove this port 'from consideration'
+        callback(error, null, [ port ]);
+      });
+
+      board.once('ready', function() {
+        // TODO: iterate through all ports, don't stop with first found, it may not be
+        // responding to Reflecta queryInterface or it may already be in use
+        callback(null, [ board ], [ port ]);
+      });
+
+    } else {
+      callback('Arduino not found on available serial ports', null, results.map(function(result) { return result.comName; }));
+    }
+  });
+}
+
+module.exports = { Board: Board, detect: detect };

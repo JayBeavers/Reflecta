@@ -1,24 +1,43 @@
 Reflecta is a node.js client for communicating with an Arduino via the Reflecta protocol.
 
-> _Stability: Alpha_ -- planning on making breaking changes
+> _Stability: Low_
 
 ### Getting Started
 Install the module with: `npm install reflecta`
 
 ```javascript
-var Reflecta = require('reflecta');
-var reflecta = new Reflecta("/dev/ttyACM0");
+var reflecta = require('reflecta');
+var board = new reflecta.Board("/dev/ttyACM0");
 
-reflecta.on('ready', function() {
-  reflecta.once('response', function(response) {
+board.on('ready', function() {
+  board.once('response', function(response) {
     console.log(response);
   });
 
-  reflecta.sendFrame([1]);
+  board.sendFrame([1]);
 });
 ```
 
-### Interfaces
+### Detecting Arduino Boards
+
+```javascript
+var reflecta = require('reflecta');
+reflecta.detect(function(error, boards, ports) {
+
+  // Current implementation only returns the first board found
+  var board = boards[0];
+
+  // board is not returned until 'ready' has already fired
+  board.once('response', function(response) {
+    console.log(response);
+  });
+
+  board.sendFrame([1]);
+
+});
+```
+
+### Board Interfaces
 
 On startup Reflecta probes the Arduino to see what libraries are installed using QueryInterface.  If it finds interfaces, it will automatically load a matching set of functions onto the Reflecta object using node's require or an npm install.  A few well known interfaces that are supported are:
 
@@ -40,22 +59,22 @@ The RBOT1 interface exposes the commands for [RocketBot](https://github.com/JayB
 
 An example of how to use interfaces:
 ```javascript
-var Reflecta = require('reflecta');
-var reflecta = new Reflecta("/dev/ttyACM0");
+var reflecta = require('reflecta');
+var board = new reflecta.Board("/dev/ttyACM0");
 
-reflecta.on('ready', function() {
+board.on('ready', function() {
 
-  reflecta.ARDU1.digitalWrite(7, 1); // Set digital pin 7 to on
-  reflecta.MOTO1.drive(50, 50); // Set left and right wheel powers to 50 out of 255
-  reflecta.RBOT1.Fire(); // Fire a straw rocket
+  board.ARDU1.digitalWrite(7, 1); // Set digital pin 7 to on
+  board.MOTO1.drive(50, 50); // Set left and right wheel powers to 50 out of 255
+  board.RBOT1.Fire(); // Fire a straw rocket
 
 });
 ```
 
-### Methods
+### Board Methods
 
 ```javascript
-reflecta.sendFrame(buffer0, ..., bufferN);
+board.sendFrame(buffer0, ..., bufferN);
 ```
 Sends a frame of data to the Arduino comprised by concatenating the buffers.  Parameters will be auto-converted to a [NodeJS buffer](http://nodejs.org/api/buffer.html) so an array of octets (bytes) or a string is reasonable input.
 
@@ -65,35 +84,35 @@ turn a stream of data into deliniated frames.
 
 Note:  Be sure that ready event has fired before calling sendFrame.
 
-### Events
+### Board Events
 
 ```javascript
-reflecta.on('ready', function() ... );
+board.on('ready', function() ... );
 ```
 
 The connection has been opened and reflecta is ready to be used to communicate with the Arduino.
 
 ```javascript
-reflecta.on('error', function(error) ... );
+board.on('error', function(error) ... );
 ```
 
 An fatal error was detected in the protocol, such as a buffer overflow or underflow, function id conflict, or error with the communications port.
 
 ```javascript
-reflecta.on('warning', function(warning) ... );
+board.on('warning', function(warning) ... );
 ```
 
 A non-fatal warning was detected in the protocol, anything from out of sequence (dropped frame) to bad CRC or
 unexpected SLIP Escape (corrupted data)..
 
 ```javascript
-reflecta.on('message', function(message) ... );
+board.on('message', function(message) ... );
 ```
 
 A string message was received.  Generally used for 'println debugging' from the Arduino.  'message' is a UTF8 string.
 
 ```javascript
-reflecta.on('response', function(response) ... );
+board.on('response', function(response) ... );
 ```
 
 A response was received to a function executed on the Arduino by a frame sent from this client.
@@ -104,7 +123,7 @@ A response was received to a function executed on the Arduino by a frame sent fr
 - `data` contains the byte[] data for the response.
 
 ```javascript
-reflecta.on('frame', function(frame) ... );
+board.on('frame', function(frame) ... );
 ```
 
 A frame of data was received from the Arduino.  This event is only fired for frames that are not recognized as a known FrameType (e.g. Error, Warning, Message, Response, Heartbeat) by the buffer[0] value.
@@ -115,7 +134,7 @@ A frame of data was received from the Arduino.  This event is only fired for fra
 - `data` contains the byte[] data for the response.
 
 ```javascript
-reflecta.on('heartbeat', function() ... );
+board.on('heartbeat', function() ... );
 ```
 
 A frame of heartbeat data was received from the Arduino.  Heartbeat is a scheduled delivery of data retrieved from the Arduino, such as the current reading of the digital io or analog io ports.
@@ -127,19 +146,19 @@ A frame of heartbeat data was received from the Arduino.  Heartbeat is a schedul
 - `data`: heartbeat byte[]'s
 
 ```javascript
-reflecta.on('close', function() ... );
+board.on('close', function() ... );
 ```
 
 The communications port was closed.  A light wrapper over node-serialport's close event.
 
 ```javascript
-reflecta.on('end', function() ... );
+board.on('end', function() ... );
 ```
 
 The communications port was ended.  A light wrapper over node-serialport's end event.
 
 ```javascript
-reflecta.on('open', function() ... );
+board.on('open', function() ... );
 ```
 
 The communications port is open.  A light wrapper over node-serialport's open event.
@@ -149,7 +168,8 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
-- 0.3.x: Still in early alpha state.  Subject to frequent breaking API changes at this time.
+- 0.3.x: Still in early state.  Subject to frequent breaking API changes at this time.
+- 0.3.3: Added reflecta.detect(...), renamed ctor from Reflecta to Board to match firmata/johnny-five
 
 ## Futures
 
