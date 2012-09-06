@@ -15,7 +15,7 @@ reflectaFunctions setup() to be called in the Arduino setup() method.
 
 It's assumed that a higher level Reflecta Functions client library will hide this detail from the caller, instead exposing a simple function API that uses QueryInterface and sendFrame behind the scenes to make function calls appear local.
 
-For an example of this, see the [NodeJS client library](https://github.com/JayBeavers/Reflecta/tree/master/NodeClient).
+For an example of this, see the [node-reflecta client library](https://github.com/jaybeavers/node-reflecta).
 
 ## Release History
 

@@ -6,7 +6,7 @@ Reflecta Arduino Core binds the functions pinMode, digitalRead, digitalWrite, an
 
 ## Calling ReflectaArduinoCore from NodeJS
 
-The NodeJS client can be found [here](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/reflecta_ARDU1.js).
+The NodeJS client can be found [here](https://github.com/jaybeavers/node-reflecta/blob/master/node_modules/reflecta_ARDU1.js).
 
 ## To Be Documented -- Calling ReflectaArduinoCore 'raw' just using ReflectaFunctions
 

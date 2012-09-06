@@ -8,9 +8,9 @@ To install, download the contents of the repository as an archive file and decom
 
 __Examples__
 
-[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/Samples/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener and exposes the Arduino Core ([ARDU1](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/reflecta_ARDU1.js)) functions to be called.  This is the 'Arduino side' of the conversation.
+[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/Samples/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener and exposes the Arduino Core ([ARDU1](https://github.com/jaybeavers/node-reflecta/blob/master/node_modules/reflecta_ARDU1.js)) functions to be called.  This is the 'Arduino side' of the conversation.
 
-[NodeClient](https://github.com/JayBeavers/Reflecta/tree/master/NodeClient) -- a [NodeJS](http://nodejs.org/) library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/samples/simple.js) as an example.
+[node-reflecta](https://github.com/jaybeavers/node-reflecta) -- a [NodeJS](http://nodejs.org/) library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/jaybeavers/node-reflecta/blob/master/samples/simple.js) as an example.
 
 ## Why?
 
@@ -48,7 +48,7 @@ Reflecta is four Arduino libraries and one NodeJS client:
 
 - [ReflectaHeartbeat](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaHeartbeat) is a library for reading digital and analog pins very efficienctly, calling functions and gathering their results into a data packet, and sending the results at a fixed frequency to the host PC.  ReflectaHeartbeat is optimized to quickly gather data off the Arduino while effectively sharing the CPU by using asynchronous polling inside loop() rather than delay().
 
-- [NodeClient](https://github.com/JayBeavers/Reflecta/tree/master/NodeClient) is a NodeJS library built on top of node-serialport.  NodeClient uses ReflectaFunctions to queryInterface and dynamically load javascript objects for the Arduino libraries.
+- [node-reflecta](https://github.com/jaybeavers/node-reflecta) is a NodeJS library built on top of node-serialport.  node-reflecta uses ReflectaFunctions to queryInterface and dynamically load javascript objects for the Arduino libraries.
 
 ---
 
