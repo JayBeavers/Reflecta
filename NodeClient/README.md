@@ -41,7 +41,7 @@ reflecta.detect(function(error, boards, ports) {
 
 On startup Reflecta probes the Arduino to see what libraries are installed using QueryInterface.  If it finds interfaces, it will automatically load a matching set of functions onto the Reflecta object using node's require or an npm install.  A few well known interfaces that are supported are:
 
-__[ARDU1](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/ARDU1.md)__
+__[ARDU1](https://github.com/JayBeavers/Reflecta/blob/master/NodeClient/node_modules/reflecta_ARDU1.md)__
 
 The ARDU1 interface exposes the Arduino Digital & Analog I/O Functions and Wire and Servo libraries.
 
