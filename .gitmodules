@@ -1,0 +1,9 @@
+[submodule "ReflectaFunctions"]
+	path = ReflectaFunctions
+	url = ../ReflectaFunctions
+[submodule "ReflectaArduinoCore"]
+	path = ReflectaArduinoCore
+	url = ../ReflectaArduinoCore
+[submodule "ReflectaHeartbeat"]
+	path = ReflectaHeartbeat
+	url = ../ReflectaHeartbeat
