@@ -2,10 +2,7 @@
 #include <Servo.h>
 #include <L3G.h>
 #include <LSM303.h>
-#include <ReflectaFramesSerial.h>
-#include <ReflectaFunctions.h>
-#include <ReflectaArduinoCore.h>
-#include <ReflectaHeartbeat.h>
+#include <Reflecta.h>
 
 L3G gyro;
 LSM303 compass;

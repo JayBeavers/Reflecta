@@ -1,0 +1,74 @@
+FrameType KEYWORD1
+EventCode KEYWORD1
+
+# ReflectaFramesSerial Function Prototypes
+frameBufferAllocationFunction KEYWORD1
+frameReceivedFunction KEYWORD1
+
+# ReflectaFramesSerial functions
+setFrameReceivedCallback KEYWORD2
+setBufferAllocationCallback KEYWORD2
+sendEvent KEYWORD2
+sendMessage KEYWORD2
+sendFrame KEYWORD2
+reset KEYWORD2
+
+# ReflectaFramesSerial fields
+lastFrameReceived LITERAL2
+
+# ReflectaFunctions functions
+bind KEYWORD2
+push KEYWORD2
+push16 KEYWORD2
+pop KEYWORD2
+pop16 KEYWORD2
+sendResponse KEYWORD2
+
+# ReflectaArduinoCore functions
+pinMode KEYWORD2
+digitalRead KEYWORD2
+digitalWrite KEYWORD2
+analogRead KEYWORD2
+analogWrite KEYWORD2
+wireBeginMaster KEYWORD2
+wireRequestFrom KEYWORD2
+wireRequestFromStart KEYWORD2
+wireAvailable KEYWORD2
+wireRead KEYWORD2
+wireBeginTransmission KEYWORD2
+wireWrite KEYWORD2
+wireEndTransmission KEYWORD2
+servoAttach KEYWORD2
+servoDetach KEYWORD2
+servoWrite KEYWORD2
+servoWriteMicroseconds KEYWORD2
+pulseIn KEYWORD2
+
+# ReflectaHeartbeat functions
+pushf KEYWORD2
+setFrameRate KEYWORD2
+
+# Frame Types / Function Ids
+Message LITERAL1
+Warning LITERAL1
+Error LITERAL1
+PushArray LITERAL1
+QueryInterface LITERAL1
+SendResponse LITERAL1
+SendResponseCount LITERAL1
+Reset LITERAL1
+Response LITERAL1
+
+# Error Codes
+OutOfSequence LITERAL1
+UnexpectedEscape LITERAL1
+CrcMismatch LITERAL1
+UnexpectedEnd LITERAL1
+BufferOverflow LITERAL1
+WireNotAvailable LITERAL1
+FrameTooSmall LITERAL1
+FunctionConflict LITERAL1
+FunctionNotFound LITERAL1
+ParameterMismatch LITERAL1
+StackOverflow LITERAL1
+StackUnderflow LITERAL1
