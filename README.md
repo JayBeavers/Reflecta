@@ -4,13 +4,13 @@ __Reflecta__ is a communications library for Arduino that enables remote calling
 
 ## Getting Started
 
-To install, download the contents of the repository as an archive file and decompress into your ['sketchbook' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents -> arduino) in a subdirectory named 'libraries'.  When you are done you should have a file like My Documents\arduino\libraries\ReflectaFramesSerial\ReflectaFramesSerial.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
+To install, download the contents of the repository as an archive file and decompress into your ['sketchbook\libraries' folder](http://arduino.cc/it/Reference/Libraries) (on Windows this is My Documents\arduino\libraries, on Linux this is ~\sketchbook\libraries).  When you are done you should have a file like My Documents\arduino\libraries\Reflecta\Reflecta.h.  Now you can restart the Arduino IDE and use Sketch -> Import Library.
 
 __Examples__
 
-[BasicReflecta](https://github.com/JayBeavers/Reflecta/blob/master/Samples/BasicReflecta/BasicReflecta.ino) -- opens a Reflecta listener and exposes the Arduino Core ([ARDU1](https://github.com/jaybeavers/node-reflecta/blob/master/node_modules/reflecta_ARDU1.js)) functions to be called.  This is the 'Arduino side' of the conversation.
+[StandardReflecta](https://github.com/JayBeavers/Reflecta/blob/master/examples/StandardReflecta/StandardReflecta.ino) -- opens a Reflecta listener and exposes the Arduino Core ([ardu1](https://github.com/jaybeavers/node-reflecta/blob/master/node_modules/reflecta_ARDU1.js)) functions to be called.  This is the 'Arduino side' of the conversation.
 
-[node-reflecta](https://github.com/jaybeavers/node-reflecta) -- a [NodeJS](http://nodejs.org/) library that will talk to BasicReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/jaybeavers/node-reflecta/blob/master/samples/simple.js) as an example.
+[node-reflecta](https://github.com/jaybeavers/node-reflecta) -- a [NodeJS](http://nodejs.org/) library that will talk to StandardReflecta and call Arduino functions such as digitalWrite.  See [simple.js sample](https://github.com/jaybeavers/node-reflecta/blob/master/samples/simple.js) as an example.
 
 ## Why?
 
@@ -36,19 +36,19 @@ The goal is to develop a protocol that fixes these issues, specifically:
 
 Reflecta is four Arduino libraries and one NodeJS client:
 
-- [ReflectaFramesSerial](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaFramesSerial) packages byte[] data into frames over a stream, adds Sequence to detect lost frames, and adds Checksum to detect data corruption. Uses the Arduino Serial library for communications, a future Raw Hid implementation is planned.
+- [ReflectaFramesSerial](https://github.com/JayBeavers/Reflecta/blob/master/ReflectaFramesSerial.md) packages byte[] data into frames over a stream, adds Sequence to detect lost frames, and adds Checksum to detect data corruption. Uses the Arduino Serial library for communications, a future Raw Hid implementation is planned.
 
-- [ReflectaFunctions](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaFunctions) is a remote function calling protocol that builds on top of ReflectaFrames.  Arduino functions are registered by calling _bind(interfaceId, function pointer)_.
+- [ReflectaFunctions](https://github.com/JayBeavers/Reflecta/blob/master/ReflectaFunctions.md) is a remote function calling protocol that builds on top of ReflectaFrames.  Arduino functions are registered by calling _bind(interfaceId, function pointer)_.
 
   ReflectaFunctions uses a stack-based approach to calling functions. push() parameters on the stack, invoke function(s), functions pop() their parameters off the stack and push() their return values back on.
 
   ReflectaFunctions exposes bind() and queryInterface() to determine which interfaces (e.g. function groups) are on the Arduino.
 
-- [ReflectaArduinoCore](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaArduinoCore) is a binding of the Arduino core library functions such as pinMode, digitalRead, analogWrite to the 'ARDU1' interface.
+- [ReflectaArduinoCore](https://github.com/JayBeavers/Reflecta/blob/master/ReflectaArduinoCore.md) is a binding of the Arduino core library functions such as pinMode, digitalRead, analogWrite to the 'ARDU1' interface.
 
-- [ReflectaHeartbeat](https://github.com/JayBeavers/Reflecta/tree/master/ReflectaHeartbeat) is a library for reading digital and analog pins very efficienctly, calling functions and gathering their results into a data packet, and sending the results at a fixed frequency to the host PC.  ReflectaHeartbeat is optimized to quickly gather data off the Arduino while effectively sharing the CPU by using asynchronous polling inside loop() rather than delay().
+- [ReflectaHeartbeat](https://github.com/JayBeavers/Reflecta/blob/master/ReflectaHeartbeat.md) is a library for reading digital and analog pins very efficienctly, calling functions and gathering their results into a data packet, and sending the results at a fixed frequency to the host PC.  ReflectaHeartbeat is optimized to quickly gather data off the Arduino while effectively sharing the CPU by using asynchronous polling inside loop() rather than delay().
 
-- [node-reflecta](https://github.com/jaybeavers/node-reflecta) is a NodeJS library built on top of node-serialport.  node-reflecta uses ReflectaFunctions to queryInterface and dynamically load javascript objects for the Arduino libraries.
+- [node-reflecta](https://github.com/jaybeavers/node-reflecta) is a [NodeJS](http://nodejs.org/)npm library built on top of [node-serialport](https://github.com/voodootikigod/node-serialport).  node-reflecta uses ReflectaFunctions to queryInterface and dynamically load javascript objects for the libraries installed on the Arduino using [npm](http://howtonode.org/introduction-to-npm).
 
 ---
 
