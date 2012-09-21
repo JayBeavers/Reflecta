@@ -153,6 +153,6 @@ namespace reflectaHeartbeat
   };
   
   void setup() {
-    reflectaFunctions::bind("HART1", setFrameRate);
+    reflectaFunctions::bind("hart1", setFrameRate);
   }
 };

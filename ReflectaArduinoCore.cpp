@@ -109,31 +109,31 @@ namespace reflectaArduinoCore
     push(::pulseIn(pop(), pop()));
   }
   
-  // Bind the Arduino core methods to the ARDU1 interface
+  // Bind the Arduino core methods to the ardu1 interface
   void setup()
   {
-    reflectaFunctions::bind("ARDU1", pinMode);
-    reflectaFunctions::bind("ARDU1", digitalRead);
-    reflectaFunctions::bind("ARDU1", digitalWrite);
-    reflectaFunctions::bind("ARDU1", analogRead);
-    reflectaFunctions::bind("ARDU1", analogWrite);
+    reflectaFunctions::bind("ardu1", pinMode);
+    reflectaFunctions::bind("ardu1", digitalRead);
+    reflectaFunctions::bind("ardu1", digitalWrite);
+    reflectaFunctions::bind("ardu1", analogRead);
+    reflectaFunctions::bind("ardu1", analogWrite);
 
-    reflectaFunctions::bind("ARDU1", wireBeginMaster);
+    reflectaFunctions::bind("ardu1", wireBeginMaster);
     
-    reflectaFunctions::bind("ARDU1", wireRequestFrom);
-    reflectaFunctions::bind("ARDU1", wireRequestFromStart);
-    reflectaFunctions::bind("ARDU1", wireAvailable);
-    reflectaFunctions::bind("ARDU1", wireRead);
+    reflectaFunctions::bind("ardu1", wireRequestFrom);
+    reflectaFunctions::bind("ardu1", wireRequestFromStart);
+    reflectaFunctions::bind("ardu1", wireAvailable);
+    reflectaFunctions::bind("ardu1", wireRead);
     
-    reflectaFunctions::bind("ARDU1", wireBeginTransmission);
-    reflectaFunctions::bind("ARDU1", wireWrite);
-    reflectaFunctions::bind("ARDU1", wireEndTransmission);
+    reflectaFunctions::bind("ardu1", wireBeginTransmission);
+    reflectaFunctions::bind("ardu1", wireWrite);
+    reflectaFunctions::bind("ardu1", wireEndTransmission);
     
-    reflectaFunctions::bind("ARDU1", servoAttach);
-    reflectaFunctions::bind("ARDU1", servoDetach);
-    reflectaFunctions::bind("ARDU1", servoWrite);
-    reflectaFunctions::bind("ARDU1", servoWriteMicroseconds);
+    reflectaFunctions::bind("ardu1", servoAttach);
+    reflectaFunctions::bind("ardu1", servoDetach);
+    reflectaFunctions::bind("ardu1", servoWrite);
+    reflectaFunctions::bind("ardu1", servoWriteMicroseconds);
 
-    reflectaFunctions::bind("ARDU1", pulseIn);
+    reflectaFunctions::bind("ardu1", pulseIn);
   }
 };
