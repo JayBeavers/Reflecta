@@ -101,7 +101,7 @@ This compares well to STK500 and Firmata in efficiency (only 3 byte overhead per
 
 ## Futures
 
-See [this Trello Board](https://trello.com/board/reflecta/4fe0b182caf51043640db94b) for planned work.
+See [this Trello Board](https://trello.com/b/5ZyBFhPb) for planned work.
 
 ## Blogs
 
