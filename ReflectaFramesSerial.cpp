@@ -24,6 +24,8 @@ namespace reflectaFrames
     FrameInvalid
   };
 
+  bool usbPort = true;
+
   // Checksum for the incoming frame, calculated byte by byte using XOR.  Compared against the checksum byte
   // which is stored in the last byte of the frame.
   byte readChecksum = 0;
@@ -62,15 +64,37 @@ namespace reflectaFrames
     switch(b)
     {
       case End:
-        Serial.write(Escape);
-        Serial.write(EscapedEnd);
+
+        if (usbPort) {
+          Serial.write(Escape);
+          Serial.write(EscapedEnd);
+        } else {
+          Serial1.write(Escape);
+          Serial1.write(EscapedEnd);
+        }
+
         break;
+        
       case Escape:
-        Serial.write(Escape);
-        Serial.write(EscapedEscape);
+
+        if (usbPort) {
+          Serial.write(Escape);
+          Serial.write(EscapedEscape);          
+        } else {
+          Serial1.write(Escape);
+          Serial1.write(EscapedEscape);                    
+        }
+
         break;
+
       default:
-        Serial.write(b);
+
+        if (usbPort) {
+          Serial.write(b);        
+        } else {
+          Serial1.write(b);
+        }
+
         break;
     }
     writeChecksum ^= b;
@@ -85,7 +109,12 @@ namespace reflectaFrames
       writeEscaped(frame[index]);
     }
     writeEscaped(writeChecksum);
-    Serial.write(End);
+
+    if (usbPort) {
+      Serial.write(End);      
+    } else {
+      Serial1.write(End);
+    }
 
     // On Teensies, use the extended send_now to perform an undelayed send
     #ifdef USBserial_h_
@@ -118,7 +147,11 @@ namespace reflectaFrames
   
   int readUnescaped(byte &b)
   {
-    b = Serial.read();
+    if (usbPort) {
+      b = Serial.read();
+    } else {
+      b = Serial1.read();      
+    }
     
     if (escaped)
     {
@@ -185,7 +218,12 @@ namespace reflectaFrames
   {
     readSequence = 0;
     writeSequence = 0;
-    Serial.flush();
+
+    if (usbPort) {
+      Serial.flush();
+    } else {      
+      Serial1.flush();
+    }
   }
   
   void setup(int speed)
@@ -196,8 +234,13 @@ namespace reflectaFrames
       frameBufferAllocationCallback = frameBufferAllocation;
     }
     
-    Serial.begin(speed);
-    Serial.flush();
+    if (usbPort) {
+      Serial.begin(speed);
+      Serial.flush();
+    } else {
+      Serial1.begin(speed);
+      Serial1.flush();      
+    }
   }
   
   byte* frameBuffer;
@@ -212,8 +255,12 @@ namespace reflectaFrames
   {
     byte b;
     
-    while (Serial.available())
+    while (Serial.available() || Serial1.available())
     {
+      if (Serial1.available()) {
+        usbPort = false;
+      }
+
       if (readUnescaped(b))
       {
         switch (state)
