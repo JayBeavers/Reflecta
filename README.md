@@ -1,6 +1,7 @@
 __Reflecta__ is a communications library for Arduino that enables remote calling of functions, sending & receiving frames of byte data or string messages, and receiving high speed 'heartbeats' of sensor data.
 
 ---
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/JayBeavers/Reflecta?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Getting Started
 
