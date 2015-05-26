@@ -2,10 +2,12 @@
 #include <Wire.h>
 #include <Servo.h>
 
-#ifndef REFLECTA_H_
-#define REFLECTA_H_
+#ifndef _REFLECTA_H_
+#define _REFLECTA_H_
 
 namespace reflecta {
+
+  const byte kFrameSizeMax = 255;
 
   // Frame Ids used by Reflecta Functions.  These are reserved values for the
   // first byte of the frame data.
@@ -186,4 +188,4 @@ namespace reflectaHeartbeat {
 
 };  // namespace reflectaHeartbeat
 
-#endif  // REFLECTA_H_
+#endif  // _REFLECTA_H_

@@ -6,12 +6,11 @@ ReflectaHeartbeat.cpp - Library for sending timed heartbeats of data over Reflec
 
 namespace reflectaHeartbeat {
 
-  const byte heartbeatStackMax = 128;
   int heartbeatStackTop = -1;
-  int8_t heartbeatStack[heartbeatStackMax + 1];
+  int8_t heartbeatStack[reflecta::kFrameSizeMax + 1];
 
   void push(int8_t b) {
-    if (heartbeatStackTop == heartbeatStackMax) {
+    if (heartbeatStackTop == reflecta::kFrameSizeMax) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::StackOverflow);
     } else {
       heartbeatStack[++heartbeatStackTop] = b;
@@ -19,7 +18,7 @@ namespace reflectaHeartbeat {
   }
 
   void push16(int16_t w) {
-    if (heartbeatStackTop > heartbeatStackMax - 2) {
+    if (heartbeatStackTop > reflecta::kFrameSizeMax - 2) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::StackOverflow);
     } else {
       heartbeatStack[++heartbeatStackTop] = (w >> 8);
@@ -28,10 +27,10 @@ namespace reflectaHeartbeat {
   }
 
   void pushf(float f) {
-    if (heartbeatStackTop > heartbeatStackMax - 4) {
+    if (heartbeatStackTop > reflecta::kFrameSizeMax - 4) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::StackOverflow);
     } else {
-      byte* pb = (byte*)&f;
+      byte* pb = reinterpret_cast<byte*>(&f);
       heartbeatStack[++heartbeatStackTop] = pb[3];
       heartbeatStack[++heartbeatStackTop] = pb[2];
       heartbeatStack[++heartbeatStackTop] = pb[1];
@@ -68,12 +67,12 @@ namespace reflectaHeartbeat {
     microsBetweenFrames = 1000000 / framesPerSecond;
   }
 
-  // Number of times loop is called and we're still waiting for one of our bound data
-  // collection functions to finish
+  // Number of times loop is called and we're still waiting for one of our bound
+  // data collection functions to finish
   uint16_t collectingLoops = 0;
 
-  // Number of times loop is called and we've finished collecting data but the timeout
-  // for next heartbeat has not yet expired
+  // Number of times loop is called and we've finished collecting data but the
+  // timeout for next heartbeat has not yet expired
   uint16_t idleLoops = 0;
 
   void sendHeartbeat() {
@@ -82,7 +81,7 @@ namespace reflectaHeartbeat {
       push(reflecta::Heartbeat);
 
       byte heartbeatSize = heartbeatStackTop + 1;
-      byte frame[heartbeatSize];
+      byte frame[reflecta::kFrameSizeMax];
 
       for (int i = 0; i < heartbeatSize; i++) {
         frame[i] = pop();
@@ -106,7 +105,7 @@ namespace reflectaHeartbeat {
     }
 
     if (finished) {
-      unsigned long currentTime = micros();
+      uint32_t currentTime = micros();
       if (currentTime >= nextHeartbeat) {
         sendHeartbeat();
 

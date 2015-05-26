@@ -5,8 +5,9 @@ ReflectaFramesSerial.cpp - Library for sending frames of information from a Micr
 #include "Reflecta.h"
 
 namespace reflectaFrames {
-  // SLIP (http://www.ietf.org/rfc/rfc1055.txt) protocol special character definitions
-  // Used to find end of frame when using a streaming communications protocol
+  // SLIP (http://www.ietf.org/rfc/rfc1055.txt) protocol special character
+  // definitions used to find end of frame when using a streaming communications
+  // protocol
   enum EscapeCharacters {
     End           = 0xC0,
     Escape        = 0xDB,
@@ -21,21 +22,25 @@ namespace reflectaFrames {
     FrameInvalid
   };
 
-  // Checksum for the incoming frame, calculated byte by byte using XOR.  Compared against the checksum byte
-  // which is stored in the last byte of the frame.
+  // Checksum for the incoming frame, calculated byte by byte using XOR.
+  // Compared against the checksum byte which is stored in the last byte of the
+  // frame.
   byte readChecksum = 0;
 
-  // Checksum for the outgoing frame, calculated byte by byte using XOR.  Added to the payload as the last byte of the frame.
+  // Checksum for the outgoing frame, calculated byte by byte using XOR.  Added
+  // to the payload as the last byte of the frame.
   byte writeChecksum = 0;
 
-  // Sequence number of the incoming frames.  Compared against the sequence number at the beginning of the incoming frame
-  //  to detect out of sequence frames which would point towards lost data or corrupted data.
+  // Sequence number of the incoming frames.  Compared against the sequence
+  // number at the beginning of the incoming frame to detect out of sequence
+  // frames which would point towards lost data or corrupted data.
   byte readSequence = 0;
 
   // Sequence number of the outgoing frames.
   byte writeSequence = 0;
 
-  // protocol parser escape state -- set when the ESC character is detected so the next character will be de-escaped
+  // protocol parser escape state -- set when the ESC character is detected so
+  // the next character will be de-escaped
   bool escaped = false;
 
   // protocol parser state
@@ -48,7 +53,8 @@ namespace reflectaFrames {
     frameReceivedCallback = frameReceived;
   }
 
-  void setBufferAllocationCallback(frameBufferAllocationFunction frameBufferAllocation) {
+  void setBufferAllocationCallback(
+    frameBufferAllocationFunction frameBufferAllocation) {
     frameBufferAllocationCallback = frameBufferAllocation;
   }
 
@@ -94,27 +100,33 @@ namespace reflectaFrames {
   }
 
   void sendMessage(String message) {
-    byte bufferLength = message.length() + 3;
-    byte buffer[bufferLength];
+    byte buffer[reflecta::kFrameSizeMax];
+    byte messageLength = message.length();
+
+    if (2 + messageLength > reflecta::kFrameSizeMax) {
+      reflectaFrames::sendEvent(reflecta::Error, reflecta::BufferOverflow);
+      return;
+    }
 
     buffer[0] = reflecta::Message;
-    buffer[1] = message.length();
-    message.getBytes(buffer + 2, bufferLength - 2);
+    buffer[1] = messageLength;
+    message.getBytes(buffer + 2, reflecta::kFrameSizeMax - 2);
 
-    // Strip off the trailing '\0' that Arduino String.getBytes insists on postpending
-    sendFrame(buffer, bufferLength - 1);
+    // Strip off the trailing '\0' that Arduino String.getBytes insists on
+    // postpending
+    sendFrame(buffer, messageLength + 2);
   }
 
-  int readUnescaped(byte &b) {
-    b = Serial.read();
+  int readUnescaped(byte *b) {
+    *b = Serial.read();
 
     if (escaped) {
-      switch (b) {
+      switch (*b) {
         case EscapedEnd:
-          b = End;
+          *b = End;
           break;
         case EscapedEscape:
-          b = Escape;
+          *b = Escape;
           break;
         default:
           sendEvent(reflecta::Warning, reflecta:: UnexpectedEscape);
@@ -122,13 +134,13 @@ namespace reflectaFrames {
           break;
       }
       escaped = false;
-      readChecksum ^= b;
+      readChecksum ^= *b;
     } else {
-      if (b == Escape) {
+      if (*b == Escape) {
         escaped = true;
-        return 0; // read escaped value on next pass
+        return 0;  // read escaped value on next pass
       }
-      if (b == End) {
+      if (*b == End) {
         switch (state) {
           case FrameInvalid:
             readChecksum = 0;
@@ -143,7 +155,7 @@ namespace reflectaFrames {
             break;
         }
       } else {
-        readChecksum ^= b;
+        readChecksum ^= *b;
       }
     }
 
@@ -167,7 +179,8 @@ namespace reflectaFrames {
 
   void setup(int speed) {
     if (frameBufferAllocationCallback == NULL) {
-      frameBufferSource = (byte*)malloc(frameBufferSourceLength);
+      frameBufferSource = reinterpret_cast<byte*>(
+        malloc(frameBufferSourceLength));
       frameBufferAllocationCallback = frameBufferAllocation;
     }
 
@@ -187,7 +200,7 @@ namespace reflectaFrames {
     byte b;
 
     while (Serial.available()) {
-      if (readUnescaped(b)) {
+      if (readUnescaped(&b)) {
         switch (state) {
           case FrameInvalid:
             break;
@@ -195,11 +208,14 @@ namespace reflectaFrames {
           case FrameStart:
             sequence = b;
             if (readSequence++ != sequence) {
-              // Only send an out of sequence warning if the time between frames is < 10 seconds
-              // This is because we have no 'port opened/port closed' API on Arduino to tell when
-              // a connection has been physically reset by the host
+              // Only send an out of sequence warning if the time between frames
+              // is < 10 seconds.  This is because we have no 'port opened/port
+              // closed' API on Arduino to tell when a connection has been
+              // physically reset by the host
               if (lastFrameReceived - millis() < 10000) {
-                sendMessage("Expected " + String(readSequence - 1, HEX) + " received " + String(sequence, HEX) );
+                sendMessage(
+                  "Expected " + String(readSequence - 1, HEX) + " received " +
+                  String(sequence, HEX) );
                 sendEvent(reflecta::Warning, reflecta::OutOfSequence);
               }
 
@@ -224,7 +240,8 @@ namespace reflectaFrames {
 
           case FrameEnded:
             lastFrameReceived = millis();
-            if (readChecksum == 0) {  // zero expected because finally XOR'd with itself
+            // zero expected because finally XOR'd with itself
+            if (readChecksum == 0) {
               // TODO(jay): add a MessageReceived callback too
 
               if (frameReceivedCallback != NULL) {

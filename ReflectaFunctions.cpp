@@ -4,18 +4,18 @@ ReflectaFunctions.cpp - Library for binding functions to a virtual function tabl
 
 #include "Reflecta.h"
 
-namespace reflectaFunctions
-{
+namespace reflectaFunctions {
   // Index of next unused function in the function table (vtable)
   byte openFunctionIndex = 4;
 
   // Function table that relates function id -> function
   void (*vtable[255])();
 
-  // An interface is a well known group of functions.  Function id 0 == QueryInterface
-  //   which allows a client to determine which functions an Arduino supports.
+  // An interface is a well known group of functions.  Function
+  // id 0 == QueryInterface which allows a client to determine which functions
+  // an Arduino supports.
   // Maximum number of interfaces supported
-  const byte maximumInterfaces = 25;
+  const byte kMaximumInterfaces = 25;
 
   // Number of interfaces defined
   byte indexOfInterfaces = 0;
@@ -24,11 +24,11 @@ namespace reflectaFunctions
   //    CCCC is Company Id
   //    I is the Interface Id for the Company Id
   //    V is the Version Id for the Interface Id
-  String interfaceIds[maximumInterfaces];
+  String interfaceIds[kMaximumInterfaces];
 
   // Interface starting function id, id of the first function in the interface
   //   in the vtable
-  byte interfaceStart[maximumInterfaces];
+  byte interfaceStart[kMaximumInterfaces];
 
   // Is this interface already defined?
   bool knownInterface(String interfaceId) {
@@ -63,10 +63,15 @@ namespace reflectaFunctions
 
   byte callerSequence;
 
-  // Send a response frame from a function invoke.  Used when the function automatically returns
-  // data to the caller.
+  // Send a response frame from a function invoke.  Used when the function
+  // automatically returns data to the caller.
   void sendResponse(byte parameterLength, byte* parameters) {
-    byte frame[3 + parameterLength];
+    byte frame[reflecta::kFrameSizeMax];
+
+    if (3 + parameterLength > reflecta::kFrameSizeMax) {
+      reflectaFrames::sendEvent(reflecta::Error, reflecta::BufferOverflow);
+      return;
+    }
 
     frame[0] = reflecta::Response;
     frame[1] = callerSequence;
@@ -85,12 +90,12 @@ namespace reflectaFunctions
     }
   }
 
-  const byte parameterStackMax = 128;
+  const byte kParameterStackMax = 128;
   int parameterStackTop = -1;
-  int8_t parameterStack[parameterStackMax + 1];
+  int8_t parameterStack[kParameterStackMax + 1];
 
   void push(int8_t b) {
-    if (parameterStackTop == parameterStackMax) {
+    if (parameterStackTop == kParameterStackMax) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::StackOverflow);
     } else {
       parameterStack[++parameterStackTop] = b;
@@ -98,11 +103,11 @@ namespace reflectaFunctions
   }
 
   void push16(int16_t w) {
-    if (parameterStackTop > parameterStackMax - 2) {
+    if (parameterStackTop > kParameterStackMax - 2) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::StackOverflow);
     } else {
       parameterStackTop += 2;
-      *((int16_t*)(parameterStack + parameterStackTop - 1)) = w;
+      *(reinterpret_cast<int16_t*>(parameterStack + parameterStackTop - 1)) = w;
     }
   }
 
@@ -121,19 +126,26 @@ namespace reflectaFunctions
       return -1;
     } else {
       parameterStackTop -= 2;
-      return *(int16_t*)(parameterStack + parameterStackTop + 1);
+      return
+        *(reinterpret_cast<int16_t*>(parameterStack + parameterStackTop + 1));
     }
   }
 
-  // Request a response frame from data that is on the parameterStack.  Used to retrieve
-  // a count of 'n' data bytes that were push on the parameterStack from a previous
-  // invocation.  The count of bytes to be returned is determined by popping a byte off
-  // the stack so it's expected that 'PushArray 1 ResponseCount' is called first.
+  // Request a response frame from data that is on the parameterStack.  Used to
+  // retrieve a count of 'n' data bytes that were push on the parameterStack
+  // from a previous invocation.  The count of bytes to be returned is
+  // determined by popping a byte off the stack so it's expected that
+  // 'PushArray 1 ResponseCount' is called first.
   void sendResponseCount() {
     int8_t count = pop();
     byte size = 3 + count;
 
-    byte frame[size];
+    byte frame[reflecta::kFrameSizeMax];
+
+    if (3 + count > reflecta::kFrameSizeMax) {
+      reflectaFrames::sendEvent(reflecta::Error, reflecta::BufferOverflow);
+      return;
+    }
 
     frame[0] = reflecta::Response;
     frame[1] = callerSequence;
@@ -146,8 +158,9 @@ namespace reflectaFunctions
     reflectaFrames::sendFrame(frame, size);
   }
 
-  // Request a response frame of one byte data that is on the parameterStack.  Used to
-  // retrieve data pushed on the parameterStack from a previous function invocation.
+  // Request a response frame of one byte data that is on the parameterStack.
+  // Used to retrieve data pushed on the parameterStack from a previous function
+  // invocation.
   void sendResponse() {
     push(1);
     sendResponseCount();
@@ -173,11 +186,13 @@ namespace reflectaFunctions
     byte length = *execution++;
 
     // Push array data onto parameter stack as bytes, reversed
-    for (int i = length - 1; i > -1; i--) {  // Do not include the length when pushing, just the data
+    // Do not include the length when pushing, just the data
+    for (int i = length - 1; i > -1; i--) {
       push(*(execution + i));
     }
 
-    // Increment the execution pointer past the data array, being careful not to exceed the frame size
+    // Increment the execution pointer past the data array, being careful not to
+    // exceed the frame size
     for (int i = 0; i < length; i++) {
       execution++;
       if (execution > frameTop) {
@@ -203,17 +218,19 @@ namespace reflectaFunctions
   // packet containing the interface id and start index of each registered
   // interface
   void queryInterface() {
-
     const int interfaceIdLength = 5;
 
     for (int index = 0; index < indexOfInterfaces; index++) {
-      for (int stringIndex = interfaceIdLength - 1; stringIndex > -1; stringIndex--) {
+      for (int stringIndex = interfaceIdLength - 1;
+        stringIndex > -1;
+        stringIndex--) {
         push(interfaceIds[index][stringIndex]);
       }
       push(interfaceStart[index]);
     }
 
-    // each interface contributes 1 payload byte for startIndex and 'n' bytes for the interfaceId string
+    // each interface contributes 1 payload byte for startIndex and 'n' bytes
+    // for the interfaceId string
     push((interfaceIdLength + 1) * indexOfInterfaces);
     sendResponseCount();
   }
@@ -235,9 +252,10 @@ namespace reflectaFunctions
     vtable[reflecta::SendResponseCount] = sendResponseCount;
     vtable[reflecta::Reset] = reset;
 
-    // TODO(jay): block out FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE too
+    // TODO(jay): block out FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE
+    // too
 
     // Hook the incoming frames and turn them into function calls
     reflectaFrames::setFrameReceivedCallback(frameReceived);
   }
-};
+};  // namespace reflectaFunctions
