@@ -4,135 +4,112 @@
 
 #include "Reflecta.h"
 
-using namespace reflecta;
-using namespace reflectaFunctions;
-
-namespace reflectaArduinoCore
-{
-  void pinMode()
-  {
-    int8_t pin = pop();
-    int8_t val = pop();
+namespace reflectaArduinoCore {
+  void pinMode() {
+    int8_t pin = reflectaFunctions::pop();
+    int8_t val = reflectaFunctions::pop();
     ::pinMode(pin, val);
   }
 
-  void digitalRead()
-  {
-    int8_t pin = pop();
-    push(::digitalRead(pin));
+  void digitalRead() {
+    int8_t pin = reflectaFunctions::pop();
+    reflectaFunctions::push(::digitalRead(pin));
   }
 
-  void digitalWrite()
-  {
-    int8_t pin = pop();
-    int8_t val = pop();
+  void digitalWrite() {
+    int8_t pin = reflectaFunctions::pop();
+    int8_t val = reflectaFunctions::pop();
     ::digitalWrite(pin, val);
   }
 
-  void analogRead()
-  {
-    int8_t pin = pop();
-    push16(::analogRead(pin));
+  void analogRead() {
+    int8_t pin = reflectaFunctions::pop();
+    reflectaFunctions::push16(::analogRead(pin));
   }
 
-  void analogWrite()
-  {
-    int8_t pin = pop();
-    int8_t val = pop();
+  void analogWrite() {
+    int8_t pin = reflectaFunctions::pop();
+    int8_t val = reflectaFunctions::pop();
     ::analogWrite(pin, val);
   }
 
-  void wireBeginMaster()
-  {
+  void wireBeginMaster() {
     Wire.begin();
   }
 
-  void wireRequestFrom()
-  {
-    int8_t address = pop();
-    int8_t quantity = pop();
+  void wireRequestFrom() {
+    int8_t address = reflectaFunctions::pop();
+    int8_t quantity = reflectaFunctions::pop();
     Wire.requestFrom(address, quantity);
   }
 
-  void wireRequestFromStart()
-  {
-    int8_t address = pop();
-    int8_t quantity = pop();
+  void wireRequestFromStart() {
+    int8_t address = reflectaFunctions::pop();
+    int8_t quantity = reflectaFunctions::pop();
     Wire.requestFrom(address, quantity, false);
   }
 
-  void wireAvailable()
-  {
-    push(Wire.available());
+  void wireAvailable() {
+    reflectaFunctions::push(Wire.available());
   }
 
-  void wireRead()
-  {
+  void wireRead() {
     if (Wire.available())
-      push(Wire.read());
+    reflectaFunctions::push(Wire.read());
     else
-      reflectaFrames::sendEvent(Error, WireNotAvailable);
+      reflectaFrames::sendEvent(reflecta::Error, reflecta::WireNotAvailable);
   }
 
-  void wireBeginTransmission()
-  {
-    int8_t address = pop();
-        Wire.beginTransmission(address);
+  void wireBeginTransmission() {
+    int8_t address = reflectaFunctions::pop();
+    Wire.beginTransmission(address);
   }
 
-  // TODO: Support variants write(string) and write(data, length)
-  void wireWrite()
-  {
-    int8_t val = pop();
+  // TODO(jay): Support variants write(string) and write(data, length)
+  void wireWrite() {
+    int8_t val = reflectaFunctions::pop();
     Wire.write(val);
   }
 
-  void wireEndTransmission()
-  {
+  void wireEndTransmission() {
     Wire.endTransmission();
   }
 
   Servo servos[MAX_SERVOS];
 
-  // TODO: Support variant attach(pin, min, max)
-  void servoAttach()
-  {
-      int8_t pin = pop();
-      servos[pin].attach(pin);
+  // TODO(jay): Support variant attach(pin, min, max)
+  void servoAttach() {
+    int8_t pin = reflectaFunctions::pop();
+    servos[pin].attach(pin);
   }
 
-  void servoDetach()
-  {
-    int8_t pin = pop();
-      servos[pin].detach();
+  void servoDetach() {
+    int8_t pin = reflectaFunctions::pop();
+    servos[pin].detach();
   }
 
-  void servoWrite()
-  {
-    int8_t pin = pop();
-    int8_t val = pop();
-      servos[pin].write(val);
+  void servoWrite() {
+    int8_t pin = reflectaFunctions::pop();
+    int8_t val = reflectaFunctions::pop();
+    servos[pin].write(val);
   }
 
-  void servoWriteMicroseconds()
-  {
-    int8_t pin = pop();
-    int8_t val = pop16();
-      servos[pin].writeMicroseconds(val);
+  void servoWriteMicroseconds() {
+    int8_t pin = reflectaFunctions::pop();
+    int8_t val = reflectaFunctions::pop16();
+    servos[pin].writeMicroseconds(val);
   }
 
-  // TODO: Support variant pulseIn(pin, value, timeout)
-  void pulseIn()
-  {
+  // TODO(jay): Support variant pulseIn(pin, value, timeout)
+  void pulseIn() {
     // BUGBUG: Broken, returns a 32 bit result
-    int8_t pin = pop();
-    int8_t val = pop();
-    push(::pulseIn(pin, val));
+    int8_t pin = reflectaFunctions::pop();
+    int8_t val = reflectaFunctions::pop();
+    reflectaFunctions::push(::pulseIn(pin, val));
   }
 
   // Bind the Arduino core methods to the ardu1 interface
-  void setup()
-  {
+  void setup() {
     reflectaFunctions::bind("ardu1", pinMode);
     reflectaFunctions::bind("ardu1", digitalRead);
     reflectaFunctions::bind("ardu1", digitalWrite);
@@ -157,4 +134,4 @@ namespace reflectaArduinoCore
 
     reflectaFunctions::bind("ardu1", pulseIn);
   }
-};
+};  // namespace reflectaArduinoCore
