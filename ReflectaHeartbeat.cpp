@@ -9,6 +9,16 @@ namespace reflectaHeartbeat {
   int heartbeatStackTop = -1;
   int8_t heartbeatStack[reflecta::kFrameSizeMax + 1];
 
+  bool isAlive = false;
+
+  bool alive() {
+    return isAlive;
+  }
+
+  void keepAlive() {
+    isAlive = true;
+  }
+
   void push(int8_t b) {
     if (heartbeatStackTop == reflecta::kFrameSizeMax) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::StackOverflow);
@@ -91,8 +101,10 @@ namespace reflectaHeartbeat {
   }
 
   bool finished = false;
+  bool aliveReset = false; // Reset alive once after finished
   uint32_t nextHeartbeat = 0;
   void loop() {
+
     if (!finished) {
       collectingLoops++;
       finished = true;
@@ -105,6 +117,13 @@ namespace reflectaHeartbeat {
     }
 
     if (finished) {
+
+      // After the heartbeatFunctions have completed, reset isAlive once
+      if (!aliveReset) {
+        isAlive = false;
+        aliveReset = true;
+      }
+
       uint32_t currentTime = micros();
       if (currentTime >= nextHeartbeat) {
         sendHeartbeat();
@@ -115,6 +134,7 @@ namespace reflectaHeartbeat {
         // Zero out the heartbeat state
         collectingLoops = 0;
         idleLoops = 0;
+        aliveReset = false;
 
         for (int i = 0; i < MaxFunctions; i++) {
           functionComplete[i] = false;
@@ -129,5 +149,6 @@ namespace reflectaHeartbeat {
 
   void setup() {
     reflectaFunctions::bind("hart1", setFrameRate);
+    reflectaFunctions::bind("hart1", keepAlive);
   }
 };  // namespace reflectaHeartbeat

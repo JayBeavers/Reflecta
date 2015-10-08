@@ -166,6 +166,13 @@ namespace reflectaHeartbeat {
   //    expired
   //  Pushes 'idle loops' to the top of the stack
 
+  // Returns the current state of isAlive
+  bool alive();
+
+  // Sets isAlive to true which is used to determine if the host is sending
+  // a keepAlive signal to the Arduino
+  void keepAlive();
+
   // Binds the setFrameRate function to QueryInterface
   void setup();
 
