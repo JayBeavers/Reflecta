@@ -16,6 +16,7 @@ namespace reflecta {
     QueryInterface      = 0x01,
     SendResponse        = 0x02,
     SendResponseCount   = 0x03,
+    Version             = 0x04,
     Reset               = 0x7A,
     Heartbeat           = 0x7B,
     Response            = 0x7C,
@@ -106,6 +107,8 @@ namespace reflectaFunctions {
   //     function used to correlate request/response on the caller side
   //   parameterLength & parameter byte* of the response data
   void sendResponse(byte parameterLength, byte* parameters);
+
+  void setFirmwareVersion(String version);
 
   // reflectaFunctions setup() to be called in the Arduino setup() method
   void setup();
