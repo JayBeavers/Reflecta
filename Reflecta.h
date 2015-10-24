@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <Servo.h>
+#include <avr/wdt.h>
 
 #ifndef _REFLECTA_H_
 #define _REFLECTA_H_

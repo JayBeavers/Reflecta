@@ -98,6 +98,7 @@ namespace reflectaHeartbeat {
       finished = true;
       for (int i = 0; i < functionsTop; i++) {
         if (!functionComplete[i]) {
+          wdt_reset();
           functionComplete[i] = heartbeatFunctions[i]();
           if (!functionComplete[i]) finished = false;
         }
