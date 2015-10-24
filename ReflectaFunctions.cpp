@@ -5,8 +5,12 @@ ReflectaFunctions.cpp - Library for binding functions to a virtual function tabl
 #include "Reflecta.h"
 
 namespace reflectaFunctions {
+
+  // Version of this firmware
+  String firmwareVersion = "reflecta-2015.10.08.01";
+
   // Index of next unused function in the function table (vtable)
-  byte openFunctionIndex = 4;
+  byte openFunctionIndex = 5;
 
   // Function table that relates function id -> function
   void (*vtable[255])();
@@ -29,6 +33,10 @@ namespace reflectaFunctions {
   // Interface starting function id, id of the first function in the interface
   //   in the vtable
   byte interfaceStart[kMaximumInterfaces];
+
+  void setFirmwareVersion(String version) {
+    firmwareVersion = version;
+  }
 
   // Is this interface already defined?
   bool knownInterface(String interfaceId) {
@@ -235,6 +243,14 @@ namespace reflectaFunctions {
     sendResponseCount();
   }
 
+  void version() {
+    int length = firmwareVersion.length(); // Does not include the mandatory trailing zero
+    byte data[length + 1];
+    firmwareVersion.getBytes(data, length + 1);
+
+    sendResponse(length, data);
+  }
+
   void reset() {
     parameterStackTop = -1;
     reflectaFrames::reset();
@@ -250,6 +266,7 @@ namespace reflectaFunctions {
     vtable[reflecta::QueryInterface] = queryInterface;
     vtable[reflecta::SendResponse] = sendResponse;
     vtable[reflecta::SendResponseCount] = sendResponseCount;
+    vtable[reflecta::Version] = version;
     vtable[reflecta::Reset] = reset;
 
     // TODO(jay): block out FRAMES_ERROR, FRAMES_MESSAGE, and FUNCTIONS_RESPONSE

@@ -17,6 +17,7 @@ namespace reflecta {
     QueryInterface      = 0x01,
     SendResponse        = 0x02,
     SendResponseCount   = 0x03,
+    Version             = 0x04,
     Reset               = 0x7A,
     Heartbeat           = 0x7B,
     Response            = 0x7C,
@@ -108,6 +109,8 @@ namespace reflectaFunctions {
   //   parameterLength & parameter byte* of the response data
   void sendResponse(byte parameterLength, byte* parameters);
 
+  void setFirmwareVersion(String version);
+
   // reflectaFunctions setup() to be called in the Arduino setup() method
   void setup();
 
@@ -166,6 +169,13 @@ namespace reflectaHeartbeat {
   //  Counts number of 'idle loops' when hb has been sent and fps timer hasn't
   //    expired
   //  Pushes 'idle loops' to the top of the stack
+
+  // Returns the current state of isAlive
+  bool alive();
+
+  // Sets isAlive to true which is used to determine if the host is sending
+  // a keepAlive signal to the Arduino
+  void keepAlive();
 
   // Binds the setFrameRate function to QueryInterface
   void setup();
