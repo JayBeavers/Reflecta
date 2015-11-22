@@ -25,19 +25,19 @@ namespace reflectaFrames {
   // Checksum for the incoming frame, calculated byte by byte using XOR.
   // Compared against the checksum byte which is stored in the last byte of the
   // frame.
-  byte readChecksum = 0;
+  uint8_t readChecksum = 0;
 
   // Checksum for the outgoing frame, calculated byte by byte using XOR.  Added
   // to the payload as the last byte of the frame.
-  byte writeChecksum = 0;
+  uint8_t writeChecksum = 0;
 
   // Sequence number of the incoming frames.  Compared against the sequence
   // number at the beginning of the incoming frame to detect out of sequence
   // frames which would point towards lost data or corrupted data.
-  byte readSequence = 0;
+  uint8_t readSequence = 0;
 
   // Sequence number of the outgoing frames.
-  byte writeSequence = 0;
+  uint8_t writeSequence = 0;
 
   // protocol parser escape state -- set when the ESC character is detected so
   // the next character will be de-escaped
@@ -58,7 +58,7 @@ namespace reflectaFrames {
     frameBufferAllocationCallback = frameBufferAllocation;
   }
 
-  void writeEscaped(byte b) {
+  void writeEscaped(uint8_t b) {
     switch (b) {
       case End:
         Serial.write(Escape);
@@ -75,10 +75,10 @@ namespace reflectaFrames {
     writeChecksum ^= b;
   }
 
-  byte sendFrame(byte* frame, byte frameLength) {
+  uint8_t sendFrame(uint8_t* frame, uint8_t frameLength) {
     writeChecksum = 0;
     writeEscaped(writeSequence);
-    for (byte index = 0; index < frameLength; index++) {
+    for (uint8_t index = 0; index < frameLength; index++) {
       writeEscaped(frame[index]);
     }
     writeEscaped(writeChecksum);
@@ -92,16 +92,16 @@ namespace reflectaFrames {
     return writeSequence++;
   }
 
-  void sendEvent(reflecta::FunctionId type, byte code) {
-    byte buffer[2];
+  void sendEvent(reflecta::FunctionId type, uint8_t code) {
+    uint8_t buffer[2];
     buffer[0] = type;
     buffer[1] = code;
     sendFrame(buffer, 2);
   }
 
-  void sendMessage(String message) {
-    byte buffer[reflecta::kFrameSizeMax];
-    byte messageLength = message.length();
+  void sendMessage(char* message) {
+    uint8_t messageLength = strlen(message);
+    char buffer[reflecta::kFrameSizeMax];
 
     if (2 + messageLength > reflecta::kFrameSizeMax) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::BufferOverflow);
@@ -110,14 +110,14 @@ namespace reflectaFrames {
 
     buffer[0] = reflecta::Message;
     buffer[1] = messageLength;
-    message.getBytes(buffer + 2, reflecta::kFrameSizeMax - 2);
+    memcpy(buffer + 2, message, messageLength);
 
     // Strip off the trailing '\0' that Arduino String.getBytes insists on
     // postpending
-    sendFrame(buffer, messageLength + 2);
+    sendFrame((uint8_t*)buffer, messageLength + 2);
   }
 
-  int readUnescaped(byte *b) {
+  int readUnescaped(uint8_t *b) {
     *b = Serial.read();
 
     if (escaped) {
@@ -162,11 +162,11 @@ namespace reflectaFrames {
     return 1;
   }
 
-  const byte frameBufferSourceLength = 64;
-  byte* frameBufferSource = NULL;
+  const uint8_t frameBufferSourceLength = 64;
+  uint8_t* frameBufferSource = NULL;
 
   // Default frame buffer allocator for when caller does not set one.
-  byte frameBufferAllocation(byte** frameBuffer) {
+  uint8_t frameBufferAllocation(uint8_t** frameBuffer) {
     *frameBuffer = frameBufferSource;
     return frameBufferSourceLength;
   }
@@ -179,7 +179,7 @@ namespace reflectaFrames {
 
   void setup(int speed) {
     if (frameBufferAllocationCallback == NULL) {
-      frameBufferSource = reinterpret_cast<byte*>(
+      frameBufferSource = reinterpret_cast<uint8_t*>(
         malloc(frameBufferSourceLength));
       frameBufferAllocationCallback = frameBufferAllocation;
     }
@@ -188,16 +188,16 @@ namespace reflectaFrames {
     Serial.flush();
   }
 
-  byte* frameBuffer;
-  byte frameBufferLength;
-  byte frameIndex = 0;
+  uint8_t* frameBuffer;
+  uint8_t frameBufferLength;
+  uint8_t frameIndex = 0;
 
-  byte sequence;
+  uint8_t sequence;
 
   uint32_t lastFrameReceived;
 
   void loop() {
-    byte b;
+    uint8_t b;
 
     while (Serial.available()) {
       if (readUnescaped(&b)) {
@@ -213,9 +213,9 @@ namespace reflectaFrames {
               // closed' API on Arduino to tell when a connection has been
               // physically reset by the host
               if (lastFrameReceived - millis() < 10000) {
-                sendMessage(
-                  "Expected " + String(readSequence - 1, HEX) + " received " +
-                  String(sequence, HEX) );
+                char message[30];
+                snprintf(message, 30, "Expected %x received %x", readSequence - 1, sequence);
+                sendMessage(message);
                 sendEvent(reflecta::Warning, reflecta::OutOfSequence);
               }
 

@@ -8,7 +8,7 @@
 
 namespace reflecta {
 
-  const byte kFrameSizeMax = 255;
+  const uint8_t kFrameSizeMax = 255;
 
   // Frame Ids used by Reflecta Functions.  These are reserved values for the
   // first byte of the frame data.
@@ -50,13 +50,13 @@ namespace reflectaFrames {
 
   // Function definition for Frame Buffer Allocation function, to be optionally
   // implemented by the calling library or application.
-  typedef byte (*frameBufferAllocationFunction)(byte** frameBuffer);
+  typedef uint8_t (*frameBufferAllocationFunction)(uint8_t** frameBuffer);
 
   // Function definition for the Frame Received function.
   typedef void (*frameReceivedFunction)(
-    byte sequence,
-    byte frameLength,
-    byte* frame);
+    uint8_t sequence,
+    uint8_t frameLength,
+    uint8_t* frame);
 
   // Set the Frame Received Callback
   void setFrameReceivedCallback(frameReceivedFunction frameReceived);
@@ -66,13 +66,13 @@ namespace reflectaFrames {
     frameBufferAllocationFunction frameBufferAllocation);
 
   // Send a two byte frame notifying caller that something improper occured
-  void sendEvent(reflecta::FunctionId type, byte code);
+  void sendEvent(reflecta::FunctionId type, uint8_t code);
 
   // Send a string message, generally used for debugging
-  void sendMessage(String message);
+  void sendMessage(char* message);
 
   // Send a frame of data returning the sequence id
-  byte sendFrame(byte* frame, byte frameLength);
+  uint8_t sendFrame(uint8_t* frame, uint8_t frameLength);
 
   // Reset the communications protocol (zero the sequence numbers & flush the
   // communications buffers)
@@ -93,7 +93,7 @@ namespace reflectaFrames {
 namespace reflectaFunctions {
   // Bind a function to an interfaceId so it can be called by Reflecta
   // Functions.  The assigned frame id is returned.
-  byte bind(String interfaceId, void (*function)());
+  uint8_t bind(char* interfaceId, void (*function)());
 
   void push(int8_t b);
 
@@ -107,9 +107,9 @@ namespace reflectaFunctions {
   //   callerSequence == the sequence number of the frame used to call the
   //     function used to correlate request/response on the caller side
   //   parameterLength & parameter byte* of the response data
-  void sendResponse(byte parameterLength, byte* parameters);
+  void sendResponse(uint8_t parameterLength, uint8_t* parameters);
 
-  void setFirmwareVersion(String version);
+  void setFirmwareVersion(char* version);
 
   // reflectaFunctions setup() to be called in the Arduino setup() method
   void setup();
@@ -118,13 +118,13 @@ namespace reflectaFunctions {
   // change the order of instruction execution in the incoming frame.  Note:
   // if you are not implementing your own 'scripting language', you shouldn't
   // be using this.
-  extern byte* execution;
+  extern uint8_t* execution;
 
   // Top of the frame marker to be used when modifying the execution pointer.
   // Generally speaking execution should not go beyong frameTop.  When
   // execution == frameTop, the Reflecta Functions frameReceived execution loop
   // stops.
-  extern byte* frameTop;
+  extern uint8_t* frameTop;
 };  // namespace reflectaFunctions
 
 namespace reflectaArduinoCore {
@@ -183,7 +183,7 @@ namespace reflectaHeartbeat {
   // Gathers the HB data and sends it out when ready
   void loop();
 
-  extern byte* frameTop;
+  extern uint8_t* frameTop;
 
   void push(int8_t b);
 

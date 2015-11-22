@@ -7,10 +7,10 @@ ReflectaFunctions.cpp - Library for binding functions to a virtual function tabl
 namespace reflectaFunctions {
 
   // Version of this firmware
-  String firmwareVersion = "reflecta-2015.10.08.01";
+  char* firmwareVersion = "reflecta-2015.10.08.01";
 
   // Index of next unused function in the function table (vtable)
-  byte openFunctionIndex = 5;
+  uint8_t openFunctionIndex = 5;
 
   // Function table that relates function id -> function
   void (*vtable[255])();
@@ -19,10 +19,10 @@ namespace reflectaFunctions {
   // id 0 == QueryInterface which allows a client to determine which functions
   // an Arduino supports.
   // Maximum number of interfaces supported
-  const byte kMaximumInterfaces = 25;
+  const uint8_t kMaximumInterfaces = 25;
 
   // Number of interfaces defined
-  byte indexOfInterfaces = 0;
+  uint8_t indexOfInterfaces = 0;
 
   // Interface Id takes the form of CCCCIV
   //    CCCC is Company Id
@@ -32,9 +32,9 @@ namespace reflectaFunctions {
 
   // Interface starting function id, id of the first function in the interface
   //   in the vtable
-  byte interfaceStart[kMaximumInterfaces];
+  uint8_t interfaceStart[kMaximumInterfaces];
 
-  void setFirmwareVersion(String version) {
+  void setFirmwareVersion(char* version) {
     firmwareVersion = version;
   }
 
@@ -54,7 +54,7 @@ namespace reflectaFunctions {
   //   Note: You don't generally use the return value, the client uses
   //   QueryInterface (e.g. function id 0) to determine the function id
   //   remotely.
-  byte bind(String interfaceId, void (*function)()) {
+  uint8_t bind(char* interfaceId, void (*function)()) {
     if (!knownInterface(interfaceId)) {
       interfaceIds[indexOfInterfaces] = interfaceId;
       interfaceStart[indexOfInterfaces++] = openFunctionIndex;
@@ -69,12 +69,12 @@ namespace reflectaFunctions {
     return openFunctionIndex++;
   }
 
-  byte callerSequence;
+  uint8_t callerSequence;
 
   // Send a response frame from a function invoke.  Used when the function
   // automatically returns data to the caller.
-  void sendResponse(byte parameterLength, byte* parameters) {
-    byte frame[reflecta::kFrameSizeMax];
+  void sendResponse(uint8_t parameterLength, uint8_t* parameters) {
+    uint8_t frame[reflecta::kFrameSizeMax];
 
     if (3 + parameterLength > reflecta::kFrameSizeMax) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::BufferOverflow);
@@ -90,7 +90,7 @@ namespace reflectaFunctions {
   }
 
   // Invoke the function, private method called by frameReceived
-  void run(byte i) {
+  void run(uint8_t i) {
     if (vtable[i] != NULL) {
       vtable[i]();
     } else {
@@ -98,7 +98,7 @@ namespace reflectaFunctions {
     }
   }
 
-  const byte kParameterStackMax = 128;
+  const uint8_t kParameterStackMax = 128;
   int parameterStackTop = -1;
   int8_t parameterStack[kParameterStackMax + 1];
 
@@ -146,9 +146,9 @@ namespace reflectaFunctions {
   // 'PushArray 1 ResponseCount' is called first.
   void sendResponseCount() {
     int8_t count = pop();
-    byte size = 3 + count;
+    uint8_t size = 3 + count;
 
-    byte frame[reflecta::kFrameSizeMax];
+    uint8_t frame[reflecta::kFrameSizeMax];
 
     if (3 + count > reflecta::kFrameSizeMax) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::BufferOverflow);
@@ -178,20 +178,20 @@ namespace reflectaFunctions {
   // change the order of instruction execution in the incoming frame.  Note:
   // if you are not implementing your own 'scripting language', you shouldn't
   // be using this.
-  byte* execution;
+  uint8_t* execution;
 
   // Top of the frame marker to be used when modifying the execution pointer.
   // Generally speaking execution should not go beyond frameTop.  When
   // execution == frameTop, the Reflecta Functions frameReceived execution loop
   // stops.
-  byte* frameTop;
+  uint8_t* frameTop;
 
   void pushArray() {
     // Pull off array length
     if (execution == frameTop) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::FrameTooSmall);
     }
-    byte length = *execution++;
+    uint8_t length = *execution++;
 
     // Push array data onto parameter stack as bytes, reversed
     // Do not include the length when pushing, just the data
@@ -244,11 +244,7 @@ namespace reflectaFunctions {
   }
 
   void version() {
-    int length = firmwareVersion.length(); // Does not include the mandatory trailing zero
-    byte data[length + 1];
-    firmwareVersion.getBytes(data, length + 1);
-
-    sendResponse(length, data);
+    sendResponse(strlen(firmwareVersion), (uint8_t*)firmwareVersion);
   }
 
   void reset() {
