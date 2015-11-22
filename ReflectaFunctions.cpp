@@ -20,6 +20,7 @@ namespace reflectaFunctions {
   // an Arduino supports.
   // Maximum number of interfaces supported
   const uint8_t kMaximumInterfaces = 25;
+  const uint8_t kMaximumInterfaceSize = 6;
 
   // Number of interfaces defined
   uint8_t indexOfInterfaces = 0;
@@ -28,7 +29,7 @@ namespace reflectaFunctions {
   //    CCCC is Company Id
   //    I is the Interface Id for the Company Id
   //    V is the Version Id for the Interface Id
-  String interfaceIds[kMaximumInterfaces];
+  char interfaceIds[kMaximumInterfaces][kMaximumInterfaceSize];
 
   // Interface starting function id, id of the first function in the interface
   //   in the vtable
@@ -39,9 +40,9 @@ namespace reflectaFunctions {
   }
 
   // Is this interface already defined?
-  bool knownInterface(String interfaceId) {
+  bool knownInterface(char* interfaceId) {
     for (int index = 0; index < indexOfInterfaces; index++) {
-      if (interfaceIds[index] == interfaceId) {
+      if (strncmp(interfaceIds[index], interfaceId, kMaximumInterfaceSize) == 0) {
         return true;
       }
     }
@@ -56,7 +57,7 @@ namespace reflectaFunctions {
   //   remotely.
   uint8_t bind(char* interfaceId, void (*function)()) {
     if (!knownInterface(interfaceId)) {
-      interfaceIds[indexOfInterfaces] = interfaceId;
+      strncpy(interfaceIds[indexOfInterfaces], interfaceId, kMaximumInterfaceSize);
       interfaceStart[indexOfInterfaces++] = openFunctionIndex;
     }
 

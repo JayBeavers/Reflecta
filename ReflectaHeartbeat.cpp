@@ -40,7 +40,7 @@ namespace reflectaHeartbeat {
     if (heartbeatStackTop > reflecta::kFrameSizeMax - 4) {
       reflectaFrames::sendEvent(reflecta::Error, reflecta::StackOverflow);
     } else {
-      byte* pb = reinterpret_cast<byte*>(&f);
+      uint8_t* pb = reinterpret_cast<uint8_t*>(&f);
       heartbeatStack[++heartbeatStackTop] = pb[3];
       heartbeatStack[++heartbeatStackTop] = pb[2];
       heartbeatStack[++heartbeatStackTop] = pb[1];
@@ -90,8 +90,8 @@ namespace reflectaHeartbeat {
       push16(collectingLoops);
       push(reflecta::Heartbeat);
 
-      byte heartbeatSize = heartbeatStackTop + 1;
-      byte frame[reflecta::kFrameSizeMax];
+      uint8_t heartbeatSize = heartbeatStackTop + 1;
+      uint8_t frame[reflecta::kFrameSizeMax];
 
       for (int i = 0; i < heartbeatSize; i++) {
         frame[i] = pop();
