@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include <Wire.h>
-#include <Servo.h>
 #include <avr/wdt.h>
 
 #ifndef _REFLECTA_H_
@@ -135,22 +133,6 @@ namespace reflectaArduinoCore {
   void digitalWrite();
   void analogRead();
   void analogWrite();
-
-  void wireBeginMaster();
-
-  void wireRequestFrom();
-  void wireRequestFromStart();
-  void wireAvailable();
-  void wireRead();
-
-  void wireBeginTransmission();
-  void wireWrite();
-  void wireEndTransmission();
-
-  void servoAttach();
-  void servoDetach();
-  void servoWrite();
-  void servoWriteMicroseconds();
 
   void pulseIn();
 

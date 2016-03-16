@@ -1,5 +1,4 @@
 #include <Wire.h>
-#include <Servo.h>
 #include <L3G.h>
 #include <LSM303.h>
 #include <Reflecta.h>
