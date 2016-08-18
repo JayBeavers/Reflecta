@@ -67,7 +67,7 @@ namespace reflectaFrames {
   void sendEvent(reflecta::FunctionId type, uint8_t code);
 
   // Send a string message, generally used for debugging
-  void sendMessage(char* message);
+  void sendMessage(const char* message);
 
   // Send a frame of data returning the sequence id
   uint8_t sendFrame(uint8_t* frame, uint8_t frameLength);
@@ -91,7 +91,7 @@ namespace reflectaFrames {
 namespace reflectaFunctions {
   // Bind a function to an interfaceId so it can be called by Reflecta
   // Functions.  The assigned frame id is returned.
-  uint8_t bind(char* interfaceId, void (*function)());
+  uint8_t bind(const char* interfaceId, void (*function)());
 
   void push(int8_t b);
 
@@ -107,7 +107,7 @@ namespace reflectaFunctions {
   //   parameterLength & parameter byte* of the response data
   void sendResponse(uint8_t parameterLength, uint8_t* parameters);
 
-  void setFirmwareVersion(char* version);
+  void setFirmwareVersion(const char* version);
 
   // reflectaFunctions setup() to be called in the Arduino setup() method
   void setup();

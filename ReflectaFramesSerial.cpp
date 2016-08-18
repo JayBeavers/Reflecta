@@ -99,7 +99,7 @@ namespace reflectaFrames {
     sendFrame(buffer, 2);
   }
 
-  void sendMessage(char* message) {
+  void sendMessage(const char* message) {
     uint8_t messageLength = strlen(message);
     char buffer[reflecta::kFrameSizeMax];
 

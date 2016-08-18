@@ -7,7 +7,7 @@ ReflectaFunctions.cpp - Library for binding functions to a virtual function tabl
 namespace reflectaFunctions {
 
   // Version of this firmware
-  char* firmwareVersion = "reflecta-2015.10.08.01";
+  const char* firmwareVersion = "reflecta-2016.08.09.01";
 
   // Index of next unused function in the function table (vtable)
   uint8_t openFunctionIndex = 5;
@@ -35,12 +35,12 @@ namespace reflectaFunctions {
   //   in the vtable
   uint8_t interfaceStart[kMaximumInterfaces];
 
-  void setFirmwareVersion(char* version) {
+  void setFirmwareVersion(const char* version) {
     firmwareVersion = version;
   }
 
   // Is this interface already defined?
-  bool knownInterface(char* interfaceId) {
+  bool knownInterface(const char* interfaceId) {
     for (int index = 0; index < indexOfInterfaces; index++) {
       if (strncmp(interfaceIds[index], interfaceId, kMaximumInterfaceSize) == 0) {
         return true;
@@ -55,7 +55,7 @@ namespace reflectaFunctions {
   //   Note: You don't generally use the return value, the client uses
   //   QueryInterface (e.g. function id 0) to determine the function id
   //   remotely.
-  uint8_t bind(char* interfaceId, void (*function)()) {
+  uint8_t bind(const char* interfaceId, void (*function)()) {
     if (!knownInterface(interfaceId)) {
       strncpy(interfaceIds[indexOfInterfaces], interfaceId, kMaximumInterfaceSize);
       interfaceStart[indexOfInterfaces++] = openFunctionIndex;
@@ -255,7 +255,7 @@ namespace reflectaFunctions {
 
   void setup() {
     // Zero out the vtable function pointers
-    memset(vtable, NULL, 255);
+    memset(vtable, 0, 255);
 
     // Bind the QueryInterface function in the vtable
     // Do this manually as we don't want to set a matching Interface
